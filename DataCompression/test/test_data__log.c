@@ -71,6 +71,14 @@ void test_data__log_RawAdcPayloadLength(void)
     int payload_len = sizeof( uint16_t ) * MAX_ADC_SAMPLE_COUNT;        // payload length bytes
     TEST_ASSERT_EQUAL_INT( payload_len , sizeof( data__log_raw_adc_payload_t ) );
 }
+
+void test_data__log_CalibrationLedPayloadLength(void)
+{
+    int payload_len = sizeof( uint8_t ) +           // event_type | pga_level
+                      sizeof( uint16_t ) +          // raw_value
+                      sizeof( uint8_t );            // current
+    TEST_ASSERT_EQUAL_INT( payload_len , sizeof( data__log_cal_led_payload_t ) );
+}
 /*----------------------------------------------------------------------------
   private functions
 ----------------------------------------------------------------------------*/

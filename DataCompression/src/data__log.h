@@ -74,8 +74,8 @@ typedef struct data__log_raw_adc_payload_s
 typedef struct data__log_cal_led_payload_s
 {
     uint8_t event_type : 4;
-    uint16_t raw_value;
     uint8_t pga_level : 4;
+    uint16_t raw_value;
     uint8_t current;
 } __attribute__((packed)) data__log_cal_led_payload_t;
 
