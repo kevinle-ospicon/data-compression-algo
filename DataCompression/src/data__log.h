@@ -93,12 +93,13 @@ typedef union data__log_packet_s
 {
     struct __attribute__((packed))
     {
-        data__log_header_t header;
+        data__log_header_t header;        
         union __attribute__((packed))
         {
             data__log_raw_adc_payload_t raw_adc_payload;
             data__log_cal_led_payload_t cal_led_payload;
             data__log_temperature_payload_t temperature_payload;
+            uint8_t payload[ 1 ];
         };
     };
     uint8_t img[ 1 ];
@@ -114,8 +115,8 @@ typedef union data__log_packet_s
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
-uint8_t data__log_get_payload_len( enum data__log_type_e log_type );
-data__log_packet_t data__log_prepare_raw_adc_packet( uint32_t timestamp , uint16_t * raw_adc , uint8_t sample_count );
+uint8_t data__log_get_packet_len( enum data__log_type_e log_type );
+data__log_packet_t data__log_prepare_packet( uint32_t timestamp , enum data__log_type_e log_type , uint8_t * payload_ptr );
 
 /*----------------------------------------------------------------------------
   compile time checks
