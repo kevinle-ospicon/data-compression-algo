@@ -47,6 +47,19 @@
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
+int data__log_get_payload_len( enum data__log_type_e log_type )
+{
+    switch( log_type )
+    {
+        case data__log_type_raw_adc:
+            return sizeof( data__log_raw_adc_payload_t );
+        case data__log_type_cal_led:
+            return sizeof( data__log_cal_led_payload_t );
+        case data__log_type_temperature:
+        default:
+            return 0;
+    }
+}
 
 /*----------------------------------------------------------------------------
   private functions
