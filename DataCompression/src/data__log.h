@@ -24,7 +24,7 @@
   macros
 ----------------------------------------------------------------------------*/
 #define MAX_ADC_SAMPLE_COUNT    11
-#define LOG_DATA_BEGIN_MARKER   "/r/n>>"
+#define LOG_DATA_BEGIN_MARKER   "\r\n>>"
 #define LOG_DATA_BEGIN_MARKER_LEN   4
 
 /*----------------------------------------------------------------------------
@@ -68,6 +68,7 @@ typedef struct data__log_header_s
 
 typedef struct data__log_raw_adc_payload_s
 {
+    uint8_t sample_count;
     uint16_t value[ MAX_ADC_SAMPLE_COUNT ];
 } __attribute__((packed)) data__log_raw_adc_payload_t;
 
@@ -90,16 +91,16 @@ typedef struct data__log_temperature_payload_s
 
 typedef union data__log_packet_s
 {
-    struct 
+    struct __attribute__((packed))
     {
         data__log_header_t header;
-        union
+        union __attribute__((packed))
         {
             data__log_raw_adc_payload_t raw_adc_payload;
             data__log_cal_led_payload_t cal_led_payload;
             data__log_temperature_payload_t temperature_payload;
-        } __attribute__((packed));
-    } __attribute__((packed));
+        };
+    };
     uint8_t img[ 1 ];
     
 } __attribute__((packed)) data__log_packet_t;
@@ -113,7 +114,8 @@ typedef union data__log_packet_s
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
-int data__log_get_payload_len( enum data__log_type_e log_type );
+uint8_t data__log_get_payload_len( enum data__log_type_e log_type );
+data__log_packet_t data__log_prepare_raw_adc_packet( uint32_t timestamp , uint16_t * raw_adc , uint8_t sample_count );
 
 /*----------------------------------------------------------------------------
   compile time checks

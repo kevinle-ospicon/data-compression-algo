@@ -13,6 +13,7 @@
   include files
 ----------------------------------------------------------------------------*/
 #include "data__log.h"
+#include <string.h>
 
 /*----------------------------------------------------------------------------
   manifest constants
@@ -47,7 +48,8 @@
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-int data__log_get_payload_len( enum data__log_type_e log_type )
+uint8_t 
+data__log_get_payload_len( enum data__log_type_e log_type )
 {
     switch( log_type )
     {
@@ -62,6 +64,24 @@ int data__log_get_payload_len( enum data__log_type_e log_type )
     }
 }
 
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+data__log_packet_t 
+data__log_prepare_raw_adc_packet( uint32_t timestamp , uint16_t * raw_adc , uint8_t sample_count )
+{
+    data__log_packet_t packet;
+    
+    // Prepare header
+    memcpy( packet.header.log_begin , LOG_DATA_BEGIN_MARKER , LOG_DATA_BEGIN_MARKER_LEN );
+    packet.header.timestamp = timestamp;
+    packet.header.log_type = data__log_type_raw_adc;
+    packet.header.payload_len = data__log_get_payload_len( data__log_type_raw_adc );
+    
+    return packet;
+}
 /*----------------------------------------------------------------------------
   private functions
 ----------------------------------------------------------------------------*/
