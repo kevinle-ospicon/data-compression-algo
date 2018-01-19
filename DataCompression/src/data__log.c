@@ -56,6 +56,7 @@ int data__log_get_payload_len( enum data__log_type_e log_type )
         case data__log_type_cal_led:
             return sizeof( data__log_cal_led_payload_t );
         case data__log_type_temperature:
+            return sizeof( data__log_temperature_payload_t );
         default:
             return 0;
     }

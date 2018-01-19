@@ -79,6 +79,12 @@ void test_data__log_CalibrationLedPayloadLength(void)
                       sizeof( uint8_t );            // current
     TEST_ASSERT_EQUAL_INT( payload_len , data__log_get_payload_len( data__log_type_cal_led ) );
 }
+
+void test_data__log_TemperaturePayloadLength(void)
+{
+    int payload_len = sizeof( int8_t );            // value
+    TEST_ASSERT_EQUAL_INT( payload_len , data__log_get_payload_len( data__log_type_temperature ) );
+}
 /*----------------------------------------------------------------------------
   private functions
 ----------------------------------------------------------------------------*/
