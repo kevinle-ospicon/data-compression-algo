@@ -68,7 +68,6 @@ typedef struct data__log_header_s
 
 typedef struct data__log_raw_adc_payload_s
 {
-    uint8_t number_of_samples;
     uint16_t value[ MAX_ADC_SAMPLE_COUNT ];
 } __attribute__((packed)) data__log_raw_adc_payload_t;
 
