@@ -16,6 +16,7 @@ We use 00_ prefix so that this is listed first in project files.
 /*----------------------------------------------------------------------------
   nested include files
 ----------------------------------------------------------------------------*/
+#include "data__log.h"
 
 /*----------------------------------------------------------------------------
   macros
@@ -36,7 +37,9 @@ We use 00_ prefix so that this is listed first in project files.
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
-
+void dev__log_handler_init_log_data( void );
+void dev__log_handler_add_raw_adc_value( uint32_t timestamp , uint16_t value );
+data__log_cal_led_payload_t * dev__log_handler_get_packet_ptr( void );
 /*----------------------------------------------------------------------------
   compile time checks
 ----------------------------------------------------------------------------*/
