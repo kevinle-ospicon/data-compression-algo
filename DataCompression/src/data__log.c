@@ -30,6 +30,7 @@
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
+static void data__log_prepare_header( data__log_packet_t * packet , uint32_t timestamp , enum data__log_type_e log_type );
 
 /*----------------------------------------------------------------------------
   global variables
@@ -74,17 +75,27 @@ data__log_prepare_raw_adc_packet( uint32_t timestamp , uint16_t * raw_adc , uint
 {
     data__log_packet_t packet;
     
-    // Prepare header
-    memcpy( packet.header.log_begin , LOG_DATA_BEGIN_MARKER , LOG_DATA_BEGIN_MARKER_LEN );
-    packet.header.timestamp = timestamp;
-    packet.header.log_type = data__log_type_raw_adc;
-    packet.header.payload_len = data__log_get_payload_len( data__log_type_raw_adc );
+    data__log_prepare_header( & packet , timestamp , data__log_type_raw_adc );
     
     return packet;
 }
 /*----------------------------------------------------------------------------
   private functions
 ----------------------------------------------------------------------------*/
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static 
+void 
+data__log_prepare_header( data__log_packet_t * packet , uint32_t timestamp , enum data__log_type_e log_type )
+{
+    memcpy( packet->header.log_begin , LOG_DATA_BEGIN_MARKER , LOG_DATA_BEGIN_MARKER_LEN );
+    packet->header.timestamp = timestamp;
+    packet->header.log_type = log_type;
+    packet->header.payload_len = data__log_get_payload_len( log_type );
+}
 
 /*----------------------------------------------------------------------------
   End of file
