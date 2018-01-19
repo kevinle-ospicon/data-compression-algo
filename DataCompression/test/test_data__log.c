@@ -65,6 +65,13 @@ void test_data__log_CheckHeaderLength(void)
                      sizeof( uint8_t );                                 // payload length bytes
     TEST_ASSERT_EQUAL_INT( header_len , sizeof( data__log_header_t ) );
 }
+
+void test_data__log_RawAdcPayloadLength(void)
+{
+    int payload_len = sizeof( uint8_t ) +                               // marker bytes
+                      sizeof( uint16_t ) * MAX_ADC_SAMPLE_COUNT;        // payload length bytes
+    TEST_ASSERT_EQUAL_INT( payload_len , sizeof( data__log_raw_adc_payload_t ) );
+}
 /*----------------------------------------------------------------------------
   private functions
 ----------------------------------------------------------------------------*/
