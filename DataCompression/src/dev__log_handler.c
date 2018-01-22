@@ -65,11 +65,21 @@ void dev__log_handler_init_log_data( void )
 ============================================================================*/
 void dev__log_handler_add_raw_adc_value( uint32_t timestamp , uint16_t value )
 {
-    if( raw_adc_payload.sample_count < MAX_ADC_SAMPLE_COUNT )
+    if( timestamp != data__log_raw_adc_timestamp && data__log_raw_adc_timestamp != 0xFFFFFFFF )
     {
-        data__log_raw_adc_timestamp = timestamp;
+        dev__log_handler_commit_raw_adc_packet();
         raw_adc_payload.value[ raw_adc_payload.sample_count ++ ] = value;
     }
+    else
+    {
+        raw_adc_payload.value[ raw_adc_payload.sample_count ++ ] = value;
+        if( raw_adc_payload.sample_count == MAX_ADC_SAMPLE_COUNT )
+        {
+            dev__log_handler_commit_raw_adc_packet();
+        }
+    }
+
+    data__log_raw_adc_timestamp = timestamp;
 }
 
 /*============================================================================
@@ -80,6 +90,8 @@ void dev__log_handler_add_raw_adc_value( uint32_t timestamp , uint16_t value )
 void dev__log_handler_commit_raw_adc_packet( void )
 {
     dev__log_handler_write_packet( data__log_raw_adc_timestamp , data__log_type_raw_adc , ( uint8_t *) & raw_adc_payload );
+
+    dev__log_handler_init_log_data();   
 }
 /*============================================================================
 @brief
