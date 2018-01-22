@@ -22,11 +22,11 @@ void test_dev__log_handler_AddAndReadCalibrationLedPayload(void)
 {
     uint32_t timestamp = 0x12345678;
     uint8_t event_type = 1;
-    uint8_t pga_level = 2;
+    uint8_t pga_level = data__log_cal_pga_lvl_2;
     uint16_t raw_value = 0x9876;
     uint8_t current = 125;
 
-    dev__log_handler_add_cal_led_packet( timestamp , event_type , pga_level , raw_value , current );
+    dev__log_handler_add_cal_packet( timestamp , pga_level , raw_value , current );
     uint8_t data_size = 0;
     uint8_t * data_ptr = hw__log_io_read( & data_size );
 
@@ -36,7 +36,6 @@ void test_dev__log_handler_AddAndReadCalibrationLedPayload(void)
     memcpy( & packet , data_ptr , data_size );
     
     TEST_ASSERT_EQUAL_UINT32( timestamp , packet.header.timestamp );
-    TEST_ASSERT_EQUAL_UINT8( event_type , packet.cal_led_payload.event_type );
     TEST_ASSERT_EQUAL_UINT8( pga_level , packet.cal_led_payload.pga_level );
     TEST_ASSERT_EQUAL_UINT16( raw_value , packet.cal_led_payload.raw_value );
     TEST_ASSERT_EQUAL_UINT8( current , packet.cal_led_payload.current );

@@ -39,13 +39,14 @@ enum data__log_type_e
     data__log_type_number_of
 };
 
-enum data__log_cal_led_event_e
+enum data__log_cal_led_pga_level_id_e
 {
-    data__log_cal_led_event_on_mat,
-    data__log_cal_led_event_on_mat_moving,
-    data__log_cal_led_event_uncertain,
+    data__log_cal_pga_lvl_single_led,
+    data__log_cal_pga_lvl_1,
+    data__log_cal_pga_lvl_2,
+    data__log_cal_pga_lvl_4,
     
-    data__log_cal_led_event_number_of
+    data__log_cal_pga_lvl_number_of
 };
 
 /*----------------------------------------------------------------------------
@@ -72,13 +73,12 @@ typedef struct data__log_raw_adc_payload_s
     uint16_t value[ MAX_ADC_SAMPLE_COUNT ];
 } __attribute__((packed)) data__log_raw_adc_payload_t;
 
-typedef struct data__log_cal_led_payload_s
+typedef struct data__log_cal_payload_s
 {
-    uint8_t event_type : 4;
-    uint8_t pga_level : 4;
+    uint8_t pga_level;
     uint16_t raw_value;
     uint8_t current;
-} __attribute__((packed)) data__log_cal_led_payload_t;
+} __attribute__((packed)) data__log_cal_payload_t;
 
 typedef struct data__log_temperature_payload_s
 {
@@ -97,7 +97,7 @@ typedef union data__log_packet_s
         union __attribute__((packed))
         {
             data__log_raw_adc_payload_t raw_adc_payload;
-            data__log_cal_led_payload_t cal_led_payload;
+            data__log_cal_payload_t cal_led_payload;
             data__log_temperature_payload_t temperature_payload;
             uint8_t payload[ 1 ];
         };

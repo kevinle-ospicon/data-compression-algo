@@ -98,11 +98,10 @@ void dev__log_handler_commit_raw_adc_packet( void )
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-void dev__log_handler_add_cal_led_packet( uint32_t timestamp , uint8_t event_type , uint8_t pga_level , uint16_t raw_value , uint8_t current )
+void dev__log_handler_add_cal_packet( uint32_t timestamp , uint8_t pga_level , uint16_t raw_value , uint8_t current )
 {
-    data__log_cal_led_payload_t payload = 
+    data__log_cal_payload_t payload = 
     {
-        event_type & 0x0F,
         pga_level & 0x0F,
         raw_value,
         current
