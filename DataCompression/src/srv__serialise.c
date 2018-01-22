@@ -14,6 +14,11 @@ Provide API to convert between ASCII and binary encoded format
   include files
 ----------------------------------------------------------------------------*/
 #include "srv__serialise.h"
+#include <time.h>
+#include <string.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 /*----------------------------------------------------------------------------
   manifest constants
@@ -38,7 +43,7 @@ Provide API to convert between ASCII and binary encoded format
 /*----------------------------------------------------------------------------
   static variables
 ----------------------------------------------------------------------------*/
-
+static data__log_packet_t * srv__serialise_packet_ptr;
 /*----------------------------------------------------------------------------
   public functions
 ----------------------------------------------------------------------------*/
@@ -48,6 +53,53 @@ Provide API to convert between ASCII and binary encoded format
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
+void srv__serialise_init( data__log_packet_t * packet_ptr )
+{
+    srv__serialise_packet_ptr = packet_ptr;
+    memset( packet_ptr , 0 , data__log_get_packet_len( data__log_type_raw_adc ) );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void srv__serialise_to_bin( char * line_str , int line_size )
+{
+    int year , month , day;
+    int hour , minute , second;
+    char value[ 32 ] = "";
+
+    sscanf( line_str , "%4d%2d%2d_%2d:%2d:%2d:%s\r\n" , & year , & month , & day ,
+                                                    & hour , & minute , & second ,
+                                                    & value );
+    /*sscanf( "20180119_17:01:01\r\n" , "%4d%2d%2d_%2d:%2d:%2d\r\n" , & year , & month , & day ,
+                                                    & hour , & minute , & second );*/
+    /*printf( "%4d%02d%2d_%02d:%02d:%02d:%s:%s\r\n" , year , month , day ,
+                                                    hour , minute , second ,
+                                                    type , value );*/
+    printf( "second: %d\r\n" , second );
+    struct tm t;
+    time_t t_of_day;
+
+    t.tm_year = year - 1900;
+    t.tm_mon = month - 1;           // Month, 0 - jan
+    t.tm_mday = day;          // Day of the month
+    t.tm_hour = hour;
+    t.tm_min = minute;
+    t.tm_sec = second;
+    t.tm_isdst = -1;        // Is DST on? 1 = yes, 0 = no, -1 = unknown
+    t_of_day = timegm(&t);
+    srv__serialise_packet_ptr->header.timestamp = t_of_day;
+    printf("%s\r\n", asctime(&t));
+    printf("%u\r\n", t_of_day);
+    printf("%s\r\n", asctime(localtime(&t_of_day)));
+    /*struct tm mytm;
+    time_t t;
+    strptime( "20180119_17:01:01" ,"%d%m%Y_%H:%M:%S",&mytm);
+    t = mktime(&mytm);
+    srv__serialise_packet_ptr->header.timestamp = t;*/
+}
 
 /*----------------------------------------------------------------------------
   private functions

@@ -18,6 +18,7 @@
 #include "dev__log_handler.h"
 #include "srv__serialise.h"
 #include <string.h>
+#include <time.h>
 
 /*----------------------------------------------------------------------------
   manifest constants
@@ -42,6 +43,8 @@
 /*----------------------------------------------------------------------------
   static variables
 ----------------------------------------------------------------------------*/
+static data__log_packet_t log_packet;
+static char * temp_str = "20180119_17:01:01:Temp:22,9\r\n";
 
 /*----------------------------------------------------------------------------
   public functions
@@ -54,6 +57,7 @@
 ============================================================================*/
 void setUp(void)
 {
+	srv__serialise_init( & log_packet );
 }
 
 void tearDown(void)
@@ -65,22 +69,10 @@ void tearDown(void)
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-void test_srv__serialise_ConvertTemperatureAsciiToBinary(void)
+void test_srv__serialise_GetEpochTime(void)
 {
-    char * temp_str = "20180119_17:01:01:Temp:22,9\r\n";
     srv__serialise_to_bin( temp_str , strlen( temp_str ) );
-
-    uint8_t data_size = 0;
-    uint8_t * data_ptr = hw__log_io_read( & data_size );
-
-    TEST_ASSERT_EQUAL_UINT8( data__log_get_packet_len( data__log_type_temperature ) , data_size );
-
-    data__log_packet_t packet;
-    memcpy( & packet , data_ptr , data_size );
-    
-    TEST_ASSERT_EQUAL_UINT32( 1516381261 , packet.header.timestamp );
-    TEST_ASSERT_EQUAL_UINT8( data__log_type_temperature , packet.header.log_type );
-    TEST_ASSERT_EQUAL_INT8( 23 , packet.temperature_payload.value );
+    TEST_ASSERT_EQUAL_UINT32( 1516381261 , log_packet.header.timestamp );
 }
 
 /*----------------------------------------------------------------------------

@@ -16,6 +16,7 @@ Provide API to convert between ASCII and binary encoded format
 /*----------------------------------------------------------------------------
   nested include files
 ----------------------------------------------------------------------------*/
+#include "data__log.h"
 
 /*----------------------------------------------------------------------------
   macros
@@ -36,6 +37,7 @@ Provide API to convert between ASCII and binary encoded format
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
+void srv__serialise_init( data__log_packet_t * packet_ptr );
 void srv__serialise_to_bin( char * line_str , int line_size );
 /*----------------------------------------------------------------------------
   compile time checks
