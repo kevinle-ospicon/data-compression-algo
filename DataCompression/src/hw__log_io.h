@@ -39,7 +39,7 @@
   prototypes
 ----------------------------------------------------------------------------*/
 void hw__log_io_init( void );
-void hw__log_io_write( uint8_t * data_ptr , uint8_t size );
+uint8_t hw__log_io_write( uint8_t * data_ptr , uint8_t size );
 uint8_t * hw__log_io_read( uint8_t * size );
 
 /*----------------------------------------------------------------------------

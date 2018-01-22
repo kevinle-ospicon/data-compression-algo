@@ -38,8 +38,8 @@
 /*----------------------------------------------------------------------------
   static variables
 ----------------------------------------------------------------------------*/
-static uint8_t hw__log_io_data_ptr[ HW__LOG_IO_MAX_DATA_LEN ] = { 0xAA };
-static uint8_t hw__log_io_data_size = 0xFF;
+static uint8_t hw__log_io_data_ptr[ HW__LOG_IO_MAX_DATA_LEN ];
+static uint8_t hw__log_io_data_size;
 
 /*----------------------------------------------------------------------------
   public functions
@@ -61,10 +61,20 @@ void hw__log_io_init( void )
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-void hw__log_io_write( uint8_t * data_ptr , uint8_t size )
+uint8_t hw__log_io_write( uint8_t * data_ptr , uint8_t size )
 {   
-    memcpy( hw__log_io_data_ptr , data_ptr , size );
-    hw__log_io_data_size = size;
+    if( size > HW__LOG_IO_MAX_DATA_LEN )
+    {
+        memcpy( hw__log_io_data_ptr , data_ptr , HW__LOG_IO_MAX_DATA_LEN );
+        hw__log_io_data_size = HW__LOG_IO_MAX_DATA_LEN;
+    }
+    else
+    {
+        memcpy( hw__log_io_data_ptr , data_ptr , size );
+        hw__log_io_data_size = size;
+    }
+    
+    return hw__log_io_data_size;
 }
 
 /*============================================================================

@@ -50,6 +50,7 @@
 ============================================================================*/
 void setUp(void)
 {
+    hw__log_io_init();
 }
 
 void tearDown(void)
@@ -64,6 +65,27 @@ void test_hw__io_InitialiseToZeros(void)
     TEST_ASSERT_EQUAL_UINT8( 0 , data_size );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0 , data_ptr , HW__LOG_IO_MAX_DATA_LEN );
 }
+
+void test_hw__io_WriteAFewBytesWithinBound(void)
+{
+    uint8_t data_size = 5;
+    uint8_t data_array [ 5 ] = { 0xAA };
+    hw__log_io_write( data_array , data_size );
+
+    uint8_t data_size_copy = 0;
+    uint8_t * copy_ptr = hw__log_io_read( & data_size_copy );
+    TEST_ASSERT_EQUAL_UINT8( data_size_copy , data_size );
+    TEST_ASSERT_EQUAL_UINT8_ARRAY( copy_ptr , data_array , data_size );
+}
+
+void test_hw__io_WriteOutOfBoundReturnMaxSize(void)
+{
+    uint8_t write_size = 0;
+    uint8_t data_array [ 65 ] = { 0xAA };
+    write_size = hw__log_io_write( data_array , 65 );
+    TEST_ASSERT_EQUAL_UINT8( HW__LOG_IO_MAX_DATA_LEN , write_size );
+}
+
 /*----------------------------------------------------------------------------
   private functions
 ----------------------------------------------------------------------------*/
