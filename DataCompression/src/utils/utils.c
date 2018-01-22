@@ -1,5 +1,5 @@
 /*============================================================================
-@brief A C source for log data serialisation service
+@brief A C source for utilities
 ------------------------------------------------------------------------------
 <!-- Written by Kevin (Phuc) Le Dinh -->
 <!-- Copyright (C) 2018 All rights reserved -->
@@ -7,17 +7,12 @@
 
 /*----------------------------------------------------------------------------
   @brief
-Provide API to convert between ASCII and binary encoded format 
 ----------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------
   include files
 ----------------------------------------------------------------------------*/
-#include "srv__serialise.h"
-#include "utils/utils.h"
-#include <string.h>
-#include <stdint.h>
-#include <stdio.h>
+#include <time.h>
 
 /*----------------------------------------------------------------------------
   manifest constants
@@ -42,7 +37,7 @@ Provide API to convert between ASCII and binary encoded format
 /*----------------------------------------------------------------------------
   static variables
 ----------------------------------------------------------------------------*/
-static data__log_packet_t * srv__serialise_packet_ptr;
+
 /*----------------------------------------------------------------------------
   public functions
 ----------------------------------------------------------------------------*/
@@ -52,29 +47,20 @@ static data__log_packet_t * srv__serialise_packet_ptr;
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-void srv__serialise_init( data__log_packet_t * packet_ptr )
+uint32_t utils__convert_caleedar_time_to_epoch( int year , int month , int day , int hour , int minute , int second )
 {
-    srv__serialise_packet_ptr = packet_ptr;
-    memset( packet_ptr , 0 , data__log_get_packet_len( data__log_type_raw_adc ) );
-}
+    struct tm t;
+    time_t t_of_day;
 
-/*============================================================================
-@brief
-------------------------------------------------------------------------------
-@note
-============================================================================*/
-void srv__serialise_to_bin( char * line_str , int line_size )
-{
-    int year , month , day;
-    int hour , minute , second;
-    char value[ 32 ] = "";
-
-    sscanf( line_str , "%4d%2d%2d_%2d:%2d:%2d:%s\r\n" , & year , & month , & day ,
-                                                    & hour , & minute , & second ,
-                                                    & value );
-
-    
-    srv__serialise_packet_ptr->header.timestamp = utils__convert_caleedar_time_to_epoch( year , month , day , hour , minute , second);
+    t.tm_year = year - 1900;
+    t.tm_mon = month - 1;           // Month, 0 - jan
+    t.tm_mday = day;          // Day of the month
+    t.tm_hour = hour;
+    t.tm_min = minute;
+    t.tm_sec = second;
+    t.tm_isdst = -1;        // Is DST on? 1 = yes, 0 = no, -1 = unknown
+    t_of_day = timegm(&t);
+    return t_of_day;
 }
 
 /*----------------------------------------------------------------------------
