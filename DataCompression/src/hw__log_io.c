@@ -1,5 +1,5 @@
 /*============================================================================
-@brief Log data handler source file
+@brief A C source file for write/read log file
 ------------------------------------------------------------------------------
 <!-- Written by Kevin (Phuc) Le Dinh -->
 <!-- Copyright (C) 2018 All rights reserved -->
@@ -12,7 +12,6 @@
 /*----------------------------------------------------------------------------
   include files
 ----------------------------------------------------------------------------*/
-#include "dev__log_handler.h"
 #include "hw__log_io.h"
 #include <string.h>
 
@@ -31,7 +30,6 @@
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
-static void dev__log_handler_init_calibration_led_payload( void );
 
 /*----------------------------------------------------------------------------
   global variables
@@ -40,20 +38,22 @@ static void dev__log_handler_init_calibration_led_payload( void );
 /*----------------------------------------------------------------------------
   static variables
 ----------------------------------------------------------------------------*/
-static data__log_packet_t raw_adc_pkt;
+static uint8_t hw__log_io_data_ptr[ HW__LOG_IO_MAX_DATA_LEN ] = { 0xAA };
+static uint8_t hw__log_io_data_size = 0xFF;
 
 /*----------------------------------------------------------------------------
   public functions
 ----------------------------------------------------------------------------*/
 
 /*============================================================================
-@brief Initialise all internal log payloads
+@brief
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-void dev__log_handler_init_log_data( void )
+void hw__log_io_init( void )
 {
-    dev__log_handler_init_calibration_led_payload();
+    memset( hw__log_io_data_ptr , 0 , HW__LOG_IO_MAX_DATA_LEN );
+    hw__log_io_data_size = 0;
 }
 
 /*============================================================================
@@ -61,9 +61,10 @@ void dev__log_handler_init_log_data( void )
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-void dev__log_handler_add_raw_adc_value( uint32_t timestamp , uint16_t value )
-{
-
+void hw__log_io_write( uint8_t * data_ptr , uint8_t size )
+{   
+    memcpy( hw__log_io_data_ptr , data_ptr , size );
+    hw__log_io_data_size = size;
 }
 
 /*============================================================================
@@ -71,41 +72,15 @@ void dev__log_handler_add_raw_adc_value( uint32_t timestamp , uint16_t value )
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-void dev__log_handler_add_cal_led_packet( uint32_t timestamp , uint8_t event_type , uint8_t pga_level , uint16_t raw_value , uint8_t current )
+uint8_t * hw__log_io_read( uint8_t * size )
 {
-    data__log_cal_led_payload_t payload = 
-    {
-        event_type & 0x0F,
-        pga_level & 0x0F,
-        raw_value,
-        current
-    };
-    data__log_packet_t packet = data__log_prepare_packet( timestamp , data__log_type_cal_led , ( uint8_t *) & payload );
-    hw__log_io_write( packet.img , data__log_get_packet_len( data__log_type_cal_led ) );
-}
-
-/*============================================================================
-@brief
-------------------------------------------------------------------------------
-@note
-============================================================================*/
-data__log_cal_led_payload_t * dev__log_handler_get_packet_ptr( void  )
-{
-    return NULL;
+    * size = hw__log_io_data_size;
+    return hw__log_io_data_ptr;
 }
 
 /*----------------------------------------------------------------------------
   private functions
 ----------------------------------------------------------------------------*/
-/*============================================================================
-@brief
-------------------------------------------------------------------------------
-@note
-============================================================================*/
-static void dev__log_handler_init_calibration_led_payload( void )
-{
-
-}
 
 /*----------------------------------------------------------------------------
   End of file

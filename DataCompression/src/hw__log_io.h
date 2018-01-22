@@ -1,26 +1,27 @@
 /*============================================================================
-@brief Log data handler source file
+@brief A C source header file for write/read log file
 ------------------------------------------------------------------------------
 <!-- Written by Kevin (Phuc) Le Dinh -->
 <!-- Copyright (C) 2018 All rights reserved -->
 ============================================================================*/
 
-#ifndef _DEV__LOG_HANDLER_H
-#define _DEV__LOG_HANDLER_H
+#ifndef hw__log_io_h
+#define hw__log_io_h
 
 /*----------------------------------------------------------------------------
   @brief
-This driver provides APIs to accept log data and append to the memory
+  A dummy driver for file IO
 ----------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------
   nested include files
 ----------------------------------------------------------------------------*/
-#include "data__log.h"
+#include <stdint.h>
 
 /*----------------------------------------------------------------------------
   macros
 ----------------------------------------------------------------------------*/
+#define HW__LOG_IO_MAX_DATA_LEN 64 //make this large to test. Need to rewrite this properly
 
 /*----------------------------------------------------------------------------
   manifest constants
@@ -37,15 +38,15 @@ This driver provides APIs to accept log data and append to the memory
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
-void dev__log_handler_init_log_data( void );
-void dev__log_handler_add_raw_adc_value( uint32_t timestamp , uint16_t value );
-void dev__log_handler_add_cal_led_packet( uint32_t timestamp , uint8_t event_type , uint8_t pga_level , uint16_t raw_value , uint8_t current );
-data__log_cal_led_payload_t * dev__log_handler_get_packet_ptr( void );
+void hw__log_io_init( void );
+void hw__log_io_write( uint8_t * data_ptr , uint8_t size );
+uint8_t * hw__log_io_read( uint8_t * size );
+
 /*----------------------------------------------------------------------------
   compile time checks
 ----------------------------------------------------------------------------*/
 
-#endif // _DEV__LOG_HANDLER_H
+#endif
 
 /*----------------------------------------------------------------------------
   End of file
