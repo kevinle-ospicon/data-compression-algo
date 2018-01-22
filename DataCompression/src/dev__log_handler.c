@@ -89,6 +89,18 @@ void dev__log_handler_add_cal_led_packet( uint32_t timestamp , uint8_t event_typ
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
+void dev__log_handler_add_temperature_packet( uint32_t timestamp , int8_t value )
+{
+    data__log_temperature_payload_t payload = { value };
+    data__log_packet_t packet = data__log_prepare_packet( timestamp , data__log_type_temperature , ( uint8_t *) & payload );
+    hw__log_io_write( packet.img , data__log_get_packet_len( data__log_type_temperature ) );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
 data__log_cal_led_payload_t * dev__log_handler_get_packet_ptr( void  )
 {
     return NULL;
