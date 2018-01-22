@@ -39,6 +39,7 @@ This driver provides APIs to accept log data and append to the memory
 ----------------------------------------------------------------------------*/
 void dev__log_handler_init_log_data( void );
 void dev__log_handler_add_raw_adc_value( uint32_t timestamp , uint16_t value );
+void dev__log_handler_commit_raw_adc_packet( void );
 void dev__log_handler_add_cal_led_packet( uint32_t timestamp , uint8_t event_type , uint8_t pga_level , uint16_t raw_value , uint8_t current );
 void dev__log_handler_add_temperature_packet( uint32_t timestamp , int8_t value );
 

@@ -39,7 +39,8 @@ static void dev__log_handler_write_packet( uint32_t timestamp , enum data__log_t
 /*----------------------------------------------------------------------------
   static variables
 ----------------------------------------------------------------------------*/
-static data__log_packet_t raw_adc_pkt;
+static data__log_raw_adc_payload_t raw_adc_payload;
+static uint32_t data__log_raw_adc_timestamp = 0xFFFFFFFF;
 
 /*----------------------------------------------------------------------------
   public functions
@@ -52,6 +53,9 @@ static data__log_packet_t raw_adc_pkt;
 ============================================================================*/
 void dev__log_handler_init_log_data( void )
 {
+    raw_adc_payload.sample_count = 0;
+    memset( raw_adc_payload.value , 0 , MAX_ADC_SAMPLE_COUNT * sizeof( uint16_t ) );
+    data__log_raw_adc_timestamp = 0xFFFFFFFF;
 }
 
 /*============================================================================
@@ -61,9 +65,22 @@ void dev__log_handler_init_log_data( void )
 ============================================================================*/
 void dev__log_handler_add_raw_adc_value( uint32_t timestamp , uint16_t value )
 {
-
+    if( raw_adc_payload.sample_count < MAX_ADC_SAMPLE_COUNT )
+    {
+        data__log_raw_adc_timestamp = timestamp;
+        raw_adc_payload.value[ raw_adc_payload.sample_count ++ ] = value;
+    }
 }
 
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void dev__log_handler_commit_raw_adc_packet( void )
+{
+    dev__log_handler_write_packet( data__log_raw_adc_timestamp , data__log_type_raw_adc , ( uint8_t *) & raw_adc_payload );
+}
 /*============================================================================
 @brief
 ------------------------------------------------------------------------------

@@ -23,7 +23,7 @@
 /*----------------------------------------------------------------------------
   macros
 ----------------------------------------------------------------------------*/
-#define MAX_ADC_SAMPLE_COUNT    11
+#define MAX_ADC_SAMPLE_COUNT    10
 #define LOG_DATA_BEGIN_MARKER   "\r\n>>"
 #define LOG_DATA_BEGIN_MARKER_LEN   4
 
@@ -62,7 +62,7 @@ typedef struct data__log_header_s
     uint8_t payload_len;
 } __attribute__((packed)) data__log_header_t;
 
-/* Log data header (excluding the begin marker) definitions */
+/* Log data header definitions */
 
 /* Log data payload definitions */
 
