@@ -31,8 +31,7 @@
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
-static void dev__log_handler_init_calibration_led_payload( void );
-
+static void dev__log_handler_write_packet( uint32_t timestamp , enum data__log_type_e log_type , uint8_t * payload_ptr );
 /*----------------------------------------------------------------------------
   global variables
 ----------------------------------------------------------------------------*/
@@ -53,7 +52,6 @@ static data__log_packet_t raw_adc_pkt;
 ============================================================================*/
 void dev__log_handler_init_log_data( void )
 {
-    dev__log_handler_init_calibration_led_payload();
 }
 
 /*============================================================================
@@ -80,8 +78,7 @@ void dev__log_handler_add_cal_led_packet( uint32_t timestamp , uint8_t event_typ
         raw_value,
         current
     };
-    data__log_packet_t packet = data__log_prepare_packet( timestamp , data__log_type_cal_led , ( uint8_t *) & payload );
-    hw__log_io_write( packet.img , data__log_get_packet_len( data__log_type_cal_led ) );
+    dev__log_handler_write_packet( timestamp , data__log_type_cal_led , ( uint8_t *) & payload );
 }
 
 /*============================================================================
@@ -92,18 +89,7 @@ void dev__log_handler_add_cal_led_packet( uint32_t timestamp , uint8_t event_typ
 void dev__log_handler_add_temperature_packet( uint32_t timestamp , int8_t value )
 {
     data__log_temperature_payload_t payload = { value };
-    data__log_packet_t packet = data__log_prepare_packet( timestamp , data__log_type_temperature , ( uint8_t *) & payload );
-    hw__log_io_write( packet.img , data__log_get_packet_len( data__log_type_temperature ) );
-}
-
-/*============================================================================
-@brief
-------------------------------------------------------------------------------
-@note
-============================================================================*/
-data__log_cal_led_payload_t * dev__log_handler_get_packet_ptr( void  )
-{
-    return NULL;
+    dev__log_handler_write_packet( timestamp , data__log_type_temperature , ( uint8_t *) & payload );
 }
 
 /*----------------------------------------------------------------------------
@@ -114,9 +100,10 @@ data__log_cal_led_payload_t * dev__log_handler_get_packet_ptr( void  )
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-static void dev__log_handler_init_calibration_led_payload( void )
+static void dev__log_handler_write_packet( uint32_t timestamp , enum data__log_type_e log_type , uint8_t * payload_ptr )
 {
-
+    data__log_packet_t packet = data__log_prepare_packet( timestamp , log_type , payload_ptr );
+    hw__log_io_write( packet.img , data__log_get_packet_len( log_type ) );
 }
 
 /*----------------------------------------------------------------------------
