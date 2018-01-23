@@ -37,7 +37,7 @@ Misc utils
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
-uint32_t utils__convert_caleedar_time_to_epoch( int year , int month , int day , int hour , int minute , int second );
+uint32_t utils__convert_calendar_time_to_epoch( int year , int month , int day , int hour , int minute , int second );
 
 /*----------------------------------------------------------------------------
   compile time checks

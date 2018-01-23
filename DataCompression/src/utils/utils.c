@@ -47,7 +47,7 @@
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-uint32_t utils__convert_caleedar_time_to_epoch( int year , int month , int day , int hour , int minute , int second )
+uint32_t utils__convert_calendar_time_to_epoch( int year , int month , int day , int hour , int minute , int second )
 {
     struct tm t;
     time_t t_of_day;
