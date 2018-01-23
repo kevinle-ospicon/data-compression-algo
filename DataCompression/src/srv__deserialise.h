@@ -1,22 +1,21 @@
 /*============================================================================
-@brief A C source header for log data serialisation service
+@brief A C source header for log data de-serialisation service
 ------------------------------------------------------------------------------
 <!-- Written by Kevin (Phuc) Le Dinh -->
 <!-- Copyright (C) 2018 All rights reserved -->
 ============================================================================*/
 
-#ifndef _SRV__SERIALISE_H
-#define _SRV__SERIALISE_H
+#ifndef _SRV__DESERIALISE_H
+#define _SRV__DESERIALISE_H
 
 /*----------------------------------------------------------------------------
   @brief
-Provide API to convert between ASCII and binary encoded format.
+Conversion from binary encoded log data to ASCII UTF-8 format
 ----------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------
   nested include files
 ----------------------------------------------------------------------------*/
-#include "data__log.h"
 
 /*----------------------------------------------------------------------------
   macros
@@ -37,13 +36,12 @@ Provide API to convert between ASCII and binary encoded format.
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
-void srv__serialise_to_bin( char * line_str , int line_size );
-void srv__serialise_commit_all( void );
+
 /*----------------------------------------------------------------------------
   compile time checks
 ----------------------------------------------------------------------------*/
 
-#endif // _SRV__SERIALISE_H
+#endif // _SRV__DESERIALISE_H
 
 /*----------------------------------------------------------------------------
   End of file
