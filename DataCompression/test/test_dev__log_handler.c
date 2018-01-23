@@ -30,15 +30,15 @@ void test_dev__log_handler_AddAndReadCalibrationLedPayload(void)
     uint8_t data_size = 0;
     uint8_t * data_ptr = hw__log_io_read( & data_size );
 
-    TEST_ASSERT_EQUAL_UINT8( data__log_get_packet_len( data__log_type_cal_led ) , data_size );
+    TEST_ASSERT_EQUAL_UINT8( data__log_get_packet_len( data__log_type_cal ) , data_size );
 
     data__log_packet_t packet;
     memcpy( & packet , data_ptr , data_size );
     
     TEST_ASSERT_EQUAL_UINT32( timestamp , packet.header.timestamp );
-    TEST_ASSERT_EQUAL_UINT8( pga_level , packet.cal_led_payload.pga_level );
-    TEST_ASSERT_EQUAL_UINT16( raw_value , packet.cal_led_payload.raw_value );
-    TEST_ASSERT_EQUAL_UINT8( current , packet.cal_led_payload.current );
+    TEST_ASSERT_EQUAL_UINT8( pga_level , packet.cal_payload.pga_level );
+    TEST_ASSERT_EQUAL_UINT16( raw_value , packet.cal_payload.raw_value );
+    TEST_ASSERT_EQUAL_UINT8( current , packet.cal_payload.current );
 }
 
 void test_dev__log_handler_AddAndReadTemperaturePayload(void)

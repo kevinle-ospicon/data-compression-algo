@@ -33,7 +33,7 @@
 enum data__log_type_e
 {
     data__log_type_raw_adc = 0x00,
-    data__log_type_cal_led,
+    data__log_type_cal,
     data__log_type_temperature,
     
     data__log_type_number_of
@@ -97,7 +97,7 @@ typedef union data__log_packet_s
         union __attribute__((packed))
         {
             data__log_raw_adc_payload_t raw_adc_payload;
-            data__log_cal_payload_t cal_led_payload;
+            data__log_cal_payload_t cal_payload;
             data__log_temperature_payload_t temperature_payload;
             uint8_t payload[ 1 ];
         };

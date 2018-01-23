@@ -72,7 +72,7 @@ void test_data__log_CalibrationLedPacketLength(void)
                       sizeof( uint16_t ) +          // raw_value
                       sizeof( uint8_t ) +            // current
                       get_header_size();
-    TEST_ASSERT_EQUAL_INT( packet_len , data__log_get_packet_len( data__log_type_cal_led ) );
+    TEST_ASSERT_EQUAL_INT( packet_len , data__log_get_packet_len( data__log_type_cal ) );
 }
 
 void test_data__log_TemperaturePacketLength(void)
@@ -126,11 +126,11 @@ void test_data__log_CheckCalibrationLedPacket(void)
         12345,
         100
     };
-    data__log_packet_t log_packet = data__log_prepare_packet( timestamp , data__log_type_cal_led , (uint8_t *) & cal_led_payload );
+    data__log_packet_t log_packet = data__log_prepare_packet( timestamp , data__log_type_cal , (uint8_t *) & cal_led_payload );
     
-    TEST_ASSERT_EQUAL_UINT8( data__log_cal_pga_lvl_1 , log_packet.cal_led_payload.pga_level );
-    TEST_ASSERT_EQUAL_UINT16( 12345 , log_packet.cal_led_payload.raw_value );
-    TEST_ASSERT_EQUAL_UINT8( 100 , log_packet.cal_led_payload.current );
+    TEST_ASSERT_EQUAL_UINT8( data__log_cal_pga_lvl_1 , log_packet.cal_payload.pga_level );
+    TEST_ASSERT_EQUAL_UINT16( 12345 , log_packet.cal_payload.raw_value );
+    TEST_ASSERT_EQUAL_UINT8( 100 , log_packet.cal_payload.current );
 }
 
 void test_data__log_CheckTemperaturePacket(void)

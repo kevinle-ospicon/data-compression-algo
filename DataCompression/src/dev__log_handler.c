@@ -106,7 +106,7 @@ void dev__log_handler_add_cal_packet( uint32_t timestamp , uint8_t pga_level , u
         raw_value,
         current
     };
-    dev__log_handler_write_packet( timestamp , data__log_type_cal_led , ( uint8_t *) & payload );
+    dev__log_handler_write_packet( timestamp , data__log_type_cal , ( uint8_t *) & payload );
 }
 
 /*============================================================================
