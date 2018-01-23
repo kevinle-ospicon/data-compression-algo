@@ -63,7 +63,7 @@ void test_dev__log_handler_AddAndReadTemperaturePayload(void)
 void test_dev__log_handler_AddAndReadRawAdcPayloadWithinOneSecond(void)
 {
     uint32_t timestamp = 0x12345678;
-    uint16_t values[ 6 ] = { 0xAABB };
+    uint16_t values[ 6 ] = { 0xAABB  , 0xAABB , 0xAABB , 0xAABB , 0xAABB , 0xAABB };
 
     for( int idx = 0 ; idx < 6  ; idx ++)
     {
@@ -86,7 +86,9 @@ void test_dev__log_handler_AddAndReadRawAdcPayloadWithinOneSecond(void)
 void test_dev__log_handler_AddAndReadOufOfBoundRawAdcPayloadWithinOneSecond(void)
 {
     uint32_t timestamp = 0x12345678;
-    uint16_t values[ MAX_ADC_SAMPLE_COUNT + 1 ] = { 0xAABB };
+    uint16_t values[ MAX_ADC_SAMPLE_COUNT + 1 ] = { 0xAABB , 0xAABB , 0xAABB , 0xAABB ,
+                                                    0xAABB , 0xAABB , 0xAABB , 0xAABB , 
+                                                    0xAABB , 0xAABB , 0xAABB };
 
     for( int idx = 0 ; idx <= MAX_ADC_SAMPLE_COUNT  ; idx ++)
     {
@@ -109,8 +111,8 @@ void test_dev__log_handler_AddAndReadAdcPayloadFromTwoTimestamps(void)
 {
     uint32_t timestamp = 0x12345678;
     uint32_t timestamp_new = 0x87654321;
-    uint16_t values[ 6 ] = { 0xAABB };
-    uint16_t values_new[ 6 ] = { 0xBBAA };
+    uint16_t values[ 6 ] = { 0xAABB  , 0xAABB , 0xAABB , 0xAABB , 0xAABB , 0xAABB };
+    uint16_t values_new[ 6 ] = { 0xBBAA , 0xBBAA , 0xBBAA , 0xBBAA , 0xBBAA , 0xBBAA };
 
     for( int idx = 0 ; idx < 6  ; idx ++)
     {

@@ -131,6 +131,42 @@ void test_srv__serialise_GetRawAdcSingleValue(void)
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
+void test_srv__serialise_GetRawAdcMultipleValuesWithinBound(void)
+{
+    srv__serialise_to_bin( raw_adc_str , strlen( raw_adc_str ) );
+    srv__serialise_to_bin( raw_adc_str , strlen( raw_adc_str ) );
+    srv__serialise_to_bin( raw_adc_str , strlen( raw_adc_str ) );
+    srv__serialise_to_bin( raw_adc_str , strlen( raw_adc_str ) );
+    srv__serialise_to_bin( raw_adc_str , strlen( raw_adc_str ) );
+    srv__serialise_to_bin( raw_adc_str , strlen( raw_adc_str ) );
+    uint16_t test_array[ 6 ] = { 65535 , 65535 , 65535 , 65535 , 65535 , 65535 };
+    TEST_ASSERT_EQUAL_UINT16_ARRAY( test_array , log_packet.raw_adc_payload.value , 6 );
+    TEST_ASSERT_EQUAL_UINT8( 6 , log_packet.raw_adc_payload.sample_count );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__serialise_GetRawAdcMultipleValuesOufOfBoundReturnMaxElement(void)
+{
+    uint16_t test_array[ MAX_ADC_SAMPLE_COUNT + 1 ] ;
+	for( int idx = 0 ; idx < MAX_ADC_SAMPLE_COUNT + 1 ; idx ++ )
+	{
+		srv__serialise_to_bin( raw_adc_str , strlen( raw_adc_str ) );
+		test_array[ idx ] = 65535;
+	}
+
+    TEST_ASSERT_EQUAL_UINT16_ARRAY( test_array , log_packet.raw_adc_payload.value , MAX_ADC_SAMPLE_COUNT );
+    TEST_ASSERT_EQUAL_UINT8( MAX_ADC_SAMPLE_COUNT , log_packet.raw_adc_payload.sample_count );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
 void test_srv__serialise_GetCalibrationType(void)
 {
     srv__serialise_to_bin( cal_str_single_led , strlen( cal_str_single_led ) );

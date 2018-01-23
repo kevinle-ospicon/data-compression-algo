@@ -83,7 +83,6 @@ void srv__serialise_to_bin( char * line_str , int line_size )
                                                     & hour , & minute , & second ,
                                                     type , value );
 
-    printf( "Type: %s - value: %s\r\n" , type , value );
     srv__serialise_packet_ptr->header.timestamp = utils__convert_calendar_time_to_epoch( year , month , day , hour , minute , second);
     srv__serialise_packet_ptr->header.log_type = srv__serialise_parse_log_data_type_to_bin( type );
     srv__serialise_parse_payload_to_bin( srv__serialise_packet_ptr->header.log_type , value );
@@ -148,8 +147,12 @@ static void srv__serialise_parse_payload_to_bin( enum data__log_type_e log_type 
 ============================================================================*/
 static void srv__serialise_parse_raw_adc_payload_to_bin( char * value )
 {
-    srv__serialise_packet_ptr->raw_adc_payload.value[ 0 ] = atol( value );
-    srv__serialise_packet_ptr->raw_adc_payload.sample_count ++;
+    uint8_t current_idx = srv__serialise_packet_ptr->raw_adc_payload.sample_count;
+    if( current_idx < MAX_ADC_SAMPLE_COUNT )
+    {
+        srv__serialise_packet_ptr->raw_adc_payload.value[ current_idx ] = atol( value );
+        srv__serialise_packet_ptr->raw_adc_payload.sample_count ++;
+    }
 }
 
 /*============================================================================
