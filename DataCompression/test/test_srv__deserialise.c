@@ -14,6 +14,8 @@
 ----------------------------------------------------------------------------*/
 #include "unity.h"
 #include "srv__deserialise.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 /*----------------------------------------------------------------------------
   manifest constants
@@ -38,6 +40,9 @@
 /*----------------------------------------------------------------------------
   static variables
 ----------------------------------------------------------------------------*/
+static uint8_t temp_packet[] = { 0x0D , 0x0A , 0x3E , 0x3E , 
+                                 0x4D , 0x24 , 0x62 , 0x5A ,
+                                 0x02 , 0x01 , 0x17 };
 
 /*----------------------------------------------------------------------------
   public functions
@@ -61,10 +66,15 @@ void tearDown(void)
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-void test_srv__deserialise_NeedToImplement(void)
+void test_srv__deserialise_GetTimestampInAscii(void)
 {
-    TEST_IGNORE_MESSAGE("Need to Implement srv__deserialise");
+    for( int idx = 0 ; idx < sizeof( temp_packet ) , idx ++ )
+    {
+        srv__deserialise_parse( temp_packet[ idx ] );
+    }
+    
 }
+
 /*----------------------------------------------------------------------------
   private functions
 ----------------------------------------------------------------------------*/
