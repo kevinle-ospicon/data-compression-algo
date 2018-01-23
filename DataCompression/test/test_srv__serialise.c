@@ -170,6 +170,28 @@ void test_srv__serialise_GetCalibrationPgaLvlPga3(void)
     TEST_ASSERT_EQUAL_UINT8( data__log_cal_pga_lvl_4 , log_packet.cal_payload.pga_level );
 }
 
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__serialise_GetCalibrationCurrent(void)
+{
+    srv__serialise_to_bin( cal_str_pga_4 , strlen( cal_str_pga_4 ) );
+    TEST_ASSERT_EQUAL_UINT8( 150 , log_packet.cal_payload.current );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__serialise_GetCalibrationRawValue(void)
+{
+    srv__serialise_to_bin( cal_str_pga_4 , strlen( cal_str_pga_4 ) );
+    TEST_ASSERT_EQUAL_UINT8( 50864 , log_packet.cal_payload.raw_value );
+}
+
 /*----------------------------------------------------------------------------
   private functions
 ----------------------------------------------------------------------------*/

@@ -39,6 +39,7 @@ static uint8_t srv__serialise_parse_log_data_type_to_bin( char * type );
 static void srv__serialise_parse_payload_to_bin( enum data__log_type_e log_type , char * value );
 static void srv__serialise_parse_calibration_payload_to_bin( char * value );
 static void srv__serialise_parse_temperature_payload_to_bin( char * value );
+static uint8_t srv__serialise_get_pga_level( char * pga_level );
 
 /*----------------------------------------------------------------------------
   global variables
@@ -149,26 +150,10 @@ static void srv__serialise_parse_calibration_payload_to_bin( char * value )
     uint16_t raw_value = 0;
 
     sscanf( value , "%[^,], %f mA, %d" , pga_lvl , & current , & raw_value );
-    printf( "pga lvl: %s\r\n" , pga_lvl );
-    printf( "current: %f\r\n" , current );
-    printf( "raw value: %u\r\n" , raw_value );
 
-    if( strstr( pga_lvl , "Single LED" ) != NULL )
-    {
-        srv__serialise_packet_ptr->cal_payload.pga_level = data__log_cal_pga_lvl_single_led;
-    }
-    else if ( strstr( pga_lvl , "PGA1" ) != NULL )
-    {
-        srv__serialise_packet_ptr->cal_payload.pga_level = data__log_cal_pga_lvl_1;
-    }
-    else if ( strstr( pga_lvl , "PGA2" ) != NULL )
-    {
-        srv__serialise_packet_ptr->cal_payload.pga_level = data__log_cal_pga_lvl_2;
-    }
-    else if ( strstr( pga_lvl , "PGA4" ) != NULL )
-    {
-        srv__serialise_packet_ptr->cal_payload.pga_level = data__log_cal_pga_lvl_4;
-    }
+    srv__serialise_packet_ptr->cal_payload.pga_level = srv__serialise_get_pga_level( pga_lvl );
+    srv__serialise_packet_ptr->cal_payload.current = ( uint8_t ) ( current * 10 );
+    srv__serialise_packet_ptr->cal_payload.raw_value = raw_value;
 }
 
 /*============================================================================
@@ -188,6 +173,33 @@ static void srv__serialise_parse_temperature_payload_to_bin( char * value )
     }
 
     srv__serialise_packet_ptr->temperature_payload.value = ( int8_t ) unit;
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static uint8_t srv__serialise_get_pga_level( char * pga_level )
+{
+    uint8_t val = data__log_cal_pga_lvl_number_of;
+    if( strstr( pga_level , "Single LED" ) != NULL )
+    {
+        val = data__log_cal_pga_lvl_single_led;
+    }
+    else if ( strstr( pga_level , "PGA1" ) != NULL )
+    {
+        val = data__log_cal_pga_lvl_1;
+    }
+    else if ( strstr( pga_level , "PGA2" ) != NULL )
+    {
+        val = data__log_cal_pga_lvl_2;
+    }
+    else if ( strstr( pga_level , "PGA4" ) != NULL )
+    {
+        val = data__log_cal_pga_lvl_4;
+    }
+    return val;
 }
 /*----------------------------------------------------------------------------
   End of file
