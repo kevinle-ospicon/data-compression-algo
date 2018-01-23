@@ -75,7 +75,9 @@ uint8_t hw__log_io_write( uint8_t * data_ptr , uint8_t size )
         memcpy( hw__log_io_data_ptr , data_ptr , size );
         hw__log_io_data_size = size;
     }
+#ifndef UNIT_TEST    
     hw__log_io_append_to_file( data_ptr , size );
+#endif    
     return hw__log_io_data_size;
 }
 

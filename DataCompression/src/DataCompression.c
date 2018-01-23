@@ -18,7 +18,7 @@
 int main(void) {
 	FILE *fp;
 	char str[MAXCHAR];
-	char * filename = "test_log_1_4_seconds.txt";
+	char * filename = "test_log_1.txt";
 	int str_size = 0;
 	int line_number = 1;
 
