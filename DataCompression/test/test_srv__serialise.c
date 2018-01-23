@@ -119,6 +119,18 @@ void test_srv__serialise_GetRawAdcType(void)
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
+void test_srv__serialise_GetRawAdcSingleValue(void)
+{
+    srv__serialise_to_bin( raw_adc_str , strlen( raw_adc_str ) );
+    TEST_ASSERT_EQUAL_UINT16( 65535 , log_packet.raw_adc_payload.value[ 0 ] );
+    TEST_ASSERT_EQUAL_UINT8( 1 , log_packet.raw_adc_payload.sample_count );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
 void test_srv__serialise_GetCalibrationType(void)
 {
     srv__serialise_to_bin( cal_str_single_led , strlen( cal_str_single_led ) );

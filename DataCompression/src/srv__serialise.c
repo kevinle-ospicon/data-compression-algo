@@ -18,6 +18,7 @@ Provide API to convert between ASCII and binary encoded format
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /*----------------------------------------------------------------------------
   manifest constants
@@ -37,6 +38,7 @@ Provide API to convert between ASCII and binary encoded format
 ----------------------------------------------------------------------------*/
 static uint8_t srv__serialise_parse_log_data_type_to_bin( char * type );
 static void srv__serialise_parse_payload_to_bin( enum data__log_type_e log_type , char * value );
+static void srv__serialise_parse_raw_adc_payload_to_bin( char * value );
 static void srv__serialise_parse_calibration_payload_to_bin( char * value );
 static void srv__serialise_parse_temperature_payload_to_bin( char * value );
 static uint8_t srv__serialise_get_pga_level( char * pga_level );
@@ -81,7 +83,7 @@ void srv__serialise_to_bin( char * line_str , int line_size )
                                                     & hour , & minute , & second ,
                                                     type , value );
 
-    printf( "value string: %s\r\n" , value );
+    printf( "Type: %s - value: %s\r\n" , type , value );
     srv__serialise_packet_ptr->header.timestamp = utils__convert_calendar_time_to_epoch( year , month , day , hour , minute , second);
     srv__serialise_packet_ptr->header.log_type = srv__serialise_parse_log_data_type_to_bin( type );
     srv__serialise_parse_payload_to_bin( srv__serialise_packet_ptr->header.log_type , value );
@@ -126,6 +128,7 @@ static void srv__serialise_parse_payload_to_bin( enum data__log_type_e log_type 
     switch( log_type )
     {
         case data__log_type_raw_adc:
+            srv__serialise_parse_raw_adc_payload_to_bin( value );
             break;
         case data__log_type_cal:
             srv__serialise_parse_calibration_payload_to_bin( value );
@@ -136,6 +139,17 @@ static void srv__serialise_parse_payload_to_bin( enum data__log_type_e log_type 
         default:
             break;
     }
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static void srv__serialise_parse_raw_adc_payload_to_bin( char * value )
+{
+    srv__serialise_packet_ptr->raw_adc_payload.value[ 0 ] = atol( value );
+    srv__serialise_packet_ptr->raw_adc_payload.sample_count ++;
 }
 
 /*============================================================================

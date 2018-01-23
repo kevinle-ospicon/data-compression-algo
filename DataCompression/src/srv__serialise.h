@@ -10,7 +10,11 @@
 
 /*----------------------------------------------------------------------------
   @brief
-Provide API to convert between ASCII and binary encoded format 
+Provide API to convert between ASCII and binary encoded format.
+The current short-coming is this works well with log containing one type of data.
+If the text-based log contains a mixed of data, this driver needs improving.
+However, the conversion will not be done through a text file but inside the 
+MCU only. 
 ----------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------
