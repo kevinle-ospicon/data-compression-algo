@@ -67,16 +67,16 @@ uint8_t hw__log_io_write( uint8_t * data_ptr , uint8_t size )
 {   
     if( size > HW__LOG_IO_MAX_DATA_LEN )
     {
-        memcpy( hw__log_io_data_ptr , data_ptr , HW__LOG_IO_MAX_DATA_LEN );
         hw__log_io_data_size = HW__LOG_IO_MAX_DATA_LEN;
     }
     else
     {
-        memcpy( hw__log_io_data_ptr , data_ptr , size );
         hw__log_io_data_size = size;
     }
-#ifndef UNIT_TEST    
-    hw__log_io_append_to_file( data_ptr , size );
+#ifdef UNIT_TEST    
+    memcpy( hw__log_io_data_ptr , data_ptr , hw__log_io_data_size );
+#else    
+    hw__log_io_append_to_file( data_ptr , hw__log_io_data_size );
 #endif    
     return hw__log_io_data_size;
 }
