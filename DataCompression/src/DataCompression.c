@@ -13,13 +13,29 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAXCHAR 128
+
 int main(void) {
+	FILE *fp;
+	char str[MAXCHAR];
+	char * filename = "test_log_1_4_seconds.txt";
+	int str_size = 0;
+	int line_number = 1;
 
-	static char * temp_str = "20180119_17:01:01:Temp:22,9\r\n";
+	fp = fopen(filename, "r");
+	if (fp == NULL){
+		printf("Could not open file %s",filename);
+		return 1;
+	}
+	// reads text until newline
+	while ( fgets( str , MAXCHAR , fp ) != NULL )
+	{
+		printf( "line number %d: %s", line_number ++ , str );
+		str_size = strlen( str );
+		srv__serialise_to_bin( str , str_size );
+	}
+	srv__serialise_commit_all();
+	fclose(fp);
 
-
-    srv__serialise_to_bin( temp_str , strlen( temp_str ) );
-
-	puts("!!!Hello World!!!"); /* prints !!!Hello World!!! */
 	return EXIT_SUCCESS;
 }

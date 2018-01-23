@@ -69,17 +69,18 @@ void dev__log_handler_add_raw_adc_value( uint32_t timestamp , uint16_t value )
     {
         dev__log_handler_commit_raw_adc_packet();
         raw_adc_payload.value[ raw_adc_payload.sample_count ++ ] = value;
+        data__log_raw_adc_timestamp = timestamp;
     }
     else
     {
         raw_adc_payload.value[ raw_adc_payload.sample_count ++ ] = value;
+        data__log_raw_adc_timestamp = timestamp;
         if( raw_adc_payload.sample_count == MAX_ADC_SAMPLE_COUNT )
         {
             dev__log_handler_commit_raw_adc_packet();
         }
     }
 
-    data__log_raw_adc_timestamp = timestamp;
 }
 
 /*============================================================================

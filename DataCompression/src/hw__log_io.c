@@ -14,6 +14,7 @@
 ----------------------------------------------------------------------------*/
 #include "hw__log_io.h"
 #include <string.h>
+#include <stdio.h>
 
 /*----------------------------------------------------------------------------
   manifest constants
@@ -30,6 +31,7 @@
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
+static void hw__log_io_append_to_file( uint8_t * data_ptr , uint8_t size );
 
 /*----------------------------------------------------------------------------
   global variables
@@ -73,7 +75,7 @@ uint8_t hw__log_io_write( uint8_t * data_ptr , uint8_t size )
         memcpy( hw__log_io_data_ptr , data_ptr , size );
         hw__log_io_data_size = size;
     }
-    
+    hw__log_io_append_to_file( data_ptr , size );
     return hw__log_io_data_size;
 }
 
@@ -92,6 +94,13 @@ uint8_t * hw__log_io_read( uint8_t * size )
   private functions
 ----------------------------------------------------------------------------*/
 
+static void hw__log_io_append_to_file( uint8_t * data_ptr , uint8_t size )
+{
+    FILE *fp;
+    fp=fopen("test.bin", "ab");
+    fwrite( data_ptr , sizeof( uint8_t ), size, fp);
+    fclose (fp);
+}
 /*----------------------------------------------------------------------------
   End of file
 ----------------------------------------------------------------------------*/

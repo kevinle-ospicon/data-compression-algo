@@ -118,13 +118,7 @@ void test_dev__log_handler_AddAndReadAdcPayloadFromTwoTimestamps(void)
     {
         dev__log_handler_add_raw_adc_value( timestamp , values[ idx ] );
     }
-
-
-    for( int idx = 0 ; idx < 6  ; idx ++)
-    {
-        dev__log_handler_add_raw_adc_value( timestamp_new , values_new[ idx ] );
-    }
-
+    dev__log_handler_commit_raw_adc_packet();
 
     uint8_t data_size = 0;
     uint8_t * data_ptr = hw__log_io_read( & data_size );
@@ -136,6 +130,12 @@ void test_dev__log_handler_AddAndReadAdcPayloadFromTwoTimestamps(void)
     TEST_ASSERT_EQUAL_UINT32( timestamp , packet.header.timestamp );
     TEST_ASSERT_EQUAL_UINT8( 6 , packet.raw_adc_payload.sample_count );
     TEST_ASSERT_EQUAL_UINT16_ARRAY( values , packet.raw_adc_payload.value , 6 );
+
+    for( int idx = 0 ; idx < 6  ; idx ++)
+    {
+        dev__log_handler_add_raw_adc_value( timestamp_new , values_new[ idx ] );
+    }
+
 
     //Commit and test for the next packet
     dev__log_handler_commit_raw_adc_packet();

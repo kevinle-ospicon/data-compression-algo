@@ -160,7 +160,7 @@ static void srv__serialise_parse_calibration_payload_to_bin( uint32_t timestamp 
     float current = 0;
     uint16_t raw_value = 0;
 
-    sscanf( value , "%[^,], %f mA, %d" , pga_lvl , & current , & raw_value );
+    sscanf( value , "%[^,], %f mA, %u" , pga_lvl , & current , & raw_value );
     dev__log_handler_add_cal_packet( timestamp , srv__serialise_get_pga_level( pga_lvl ) , raw_value , ( uint8_t ) ( current * 10 ) );
 }
 
