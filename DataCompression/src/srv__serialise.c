@@ -30,6 +30,7 @@ Provide API to convert between ASCII and binary encoded format
 /*----------------------------------------------------------------------------
   macros
 ----------------------------------------------------------------------------*/
+#define SRV_SERIALISE_LINE_FORMAT   "%4d%2d%2d_%2d:%2d:%2d:%s:%s\r\n"
 
 /*----------------------------------------------------------------------------
   prototypes
@@ -67,14 +68,22 @@ void srv__serialise_to_bin( char * line_str , int line_size )
 {
     int year , month , day;
     int hour , minute , second;
-    char value[ 32 ] = "";
+    char type_value[ 32 ] = "";
+    char type[ 16 ] = "";
+    int tenth , unit;
 
-    sscanf( line_str , "%4d%2d%2d_%2d:%2d:%2d:%s\r\n" , & year , & month , & day ,
+    sscanf( line_str , SRV_SERIALISE_LINE_FORMAT , & year , & month , & day ,
                                                     & hour , & minute , & second ,
-                                                    & value );
-
+                                                    type_value );
     
+    printf( "type_value: %s\r\n"  , type_value );
+
     srv__serialise_packet_ptr->header.timestamp = utils__convert_caleedar_time_to_epoch( year , month , day , hour , minute , second);
+    srv__serialise_packet_ptr->header.log_type = data__log_type_temperature;
+    sscanf( type_value , "%[^:]:%2d,%1d\r\n" , type , & unit , & tenth );
+    printf( "unit: %d , tenth: %d\r\n"  , unit , tenth );
+    if( tenth >= 5) unit++;
+    srv__serialise_packet_ptr->temperature_payload.value = unit;
 }
 
 /*----------------------------------------------------------------------------

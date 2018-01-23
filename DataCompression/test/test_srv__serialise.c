@@ -76,6 +76,28 @@ void test_srv__serialise_GetEpochTime(void)
     TEST_ASSERT_EQUAL_UINT32( 1516381261 , log_packet.header.timestamp );
 }
 
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__serialise_GetTemperatureType(void)
+{
+    srv__serialise_to_bin( temp_str , strlen( temp_str ) );
+    TEST_ASSERT_EQUAL_UINT8( data__log_type_temperature , log_packet.header.log_type );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__serialise_GetTemperatureValue(void)
+{
+    srv__serialise_to_bin( temp_str , strlen( temp_str ) );
+    TEST_ASSERT_EQUAL_UINT8( 23 , log_packet.temperature_payload.value );
+}
+
 /*----------------------------------------------------------------------------
   private functions
 ----------------------------------------------------------------------------*/
