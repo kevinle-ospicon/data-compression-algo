@@ -51,7 +51,6 @@ static uint8_t srv__serialise_get_pga_level( char * pga_level );
 /*----------------------------------------------------------------------------
   static variables
 ----------------------------------------------------------------------------*/
-// static data__log_packet_t * srv__serialise_packet_ptr;
 static data__log_header_t srv__serialise_packet_header;
 
 /*----------------------------------------------------------------------------
@@ -148,12 +147,6 @@ static void srv__serialise_parse_payload_to_bin( data__log_header_t * header_ptr
 static void srv__serialise_parse_raw_adc_payload_to_bin( uint32_t timestamp , char * value )
 {
     dev__log_handler_add_raw_adc_value( timestamp , atol( value ) );
-    // uint8_t current_idx = srv__serialise_packet_ptr->raw_adc_payload.sample_count;
-    // if( current_idx < MAX_ADC_SAMPLE_COUNT )
-    {
-        // srv__serialise_packet_ptr->raw_adc_payload.value[ current_idx ] = atol( value );
-        // srv__serialise_packet_ptr->raw_adc_payload.sample_count ++;
-    }
 }
 
 /*============================================================================
