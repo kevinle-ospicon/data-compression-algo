@@ -40,6 +40,15 @@ enum srv__deserialise_msg_begin
     msg_begin_begin_1 = '>',
     msg_begin_begin_2 = '>',
 };
+
+enum srv__deserialise_cal_payload_state
+{
+    srv__deserialise_cal_payload_state_pga_level,
+    srv__deserialise_cal_payload_state_raw_value,
+    srv__deserialise_cal_payload_state_current
+};
+
+
 /*----------------------------------------------------------------------------
   type definitions
 ----------------------------------------------------------------------------*/
@@ -49,7 +58,10 @@ typedef struct srv__deserialise_context_s
     char * line_str;
     data__log_packet_t log_packet;
     uint8_t dummy_count;
+    enum srv__deserialise_cal_payload_state cal_payload_state;
 } srv__deserialise_context_t;
+
+typedef bool ( * srv__deserialise_parse_payload_cb_t ) ( srv__deserialise_context_t * ctx , uint8_t byte_value );
 
 /*----------------------------------------------------------------------------
   macros
@@ -58,11 +70,19 @@ typedef struct srv__deserialise_context_s
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
-static bool srv__deserialise_init_line( char * line_str , uint8_t size );
 static bool srv__deserialise_detect_begin_marker( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static bool srv__deserialise_parse_header( srv__deserialise_context_t * ctx , uint8_t byte_value );
+static bool srv__deserialise_parse_raw_adc_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
+static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
+static bool srv__deserialise_parse_temperature_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static uint32_t srv__deserialise_shift_byte( uint8_t byte_value , uint8_t position );
 
+static const srv__deserialise_parse_payload_cb_t parse_payload_cb[ data__log_type_number_of ] = 
+{
+    srv__deserialise_parse_raw_adc_payload,
+    srv__deserialise_parse_calibration_payload,
+    srv__deserialise_parse_temperature_payload,
+};
 /*----------------------------------------------------------------------------
   global variables
 ----------------------------------------------------------------------------*/
@@ -81,16 +101,12 @@ static srv__deserialise_context_t srv__deserialise_context;
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-void srv__deserialise_init( char * line_str , uint8_t size )
+void srv__deserialise_init( void )
 {
-    if( ! srv__deserialise_init_line( line_str , size ) )
-    {
-        return;
-    }
-
     srv__deserialise_context.state = srv__deserialise_state_CR;
-    srv__deserialise_context.line_str = line_str;
     srv__deserialise_context.dummy_count = 0;
+    srv__deserialise_context.cal_payload_state = srv__deserialise_cal_payload_state_pga_level;
+    memset( & srv__deserialise_context.log_packet , 0 , data__log_get_packet_len( data__log_type_raw_adc ) );
 }
 
 /*============================================================================
@@ -114,6 +130,11 @@ bool srv__deserialise_parse( uint8_t byte_value )
     else
     {
         //We're getting the payload
+        uint8_t log_type = srv__deserialise_context.log_packet.header.log_type;
+        if( log_type < data__log_type_number_of )
+        {
+            parse_payload_cb[ log_type ]( & srv__deserialise_context , byte_value );
+        }
     }
     return status;
 }
@@ -136,29 +157,6 @@ data__log_packet_t srv__deserialise_get_log_packet( void )
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-static bool srv__deserialise_init_line( char * line_str , uint8_t size )
-{
-    if( line_str == NULL )
-    {
-        return false;
-    }
-
-    if( size > SRV_DESERIALISE_MAX_STRING_LEN )
-    {
-        memset( line_str , 0  , SRV_DESERIALISE_MAX_STRING_LEN );
-    }
-    else
-    {
-        memset( line_str , 0 , size );
-    }
-    return true;
-}
-
-/*============================================================================
-@brief
-------------------------------------------------------------------------------
-@note
-============================================================================*/
 static bool srv__deserialise_detect_begin_marker( srv__deserialise_context_t * ctx , uint8_t byte_value )
 {
     bool status = false;
@@ -167,6 +165,7 @@ static bool srv__deserialise_detect_begin_marker( srv__deserialise_context_t * c
         case srv__deserialise_state_CR:
             if( byte_value == msg_begin_CR )
             {
+                srv__deserialise_init();
                 ctx->state = srv__deserialise_state_LF;
             }
             break;
@@ -241,6 +240,38 @@ static bool srv__deserialise_parse_header( srv__deserialise_context_t * ctx , ui
             break;
     }
     return status;
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static bool srv__deserialise_parse_raw_adc_payload( srv__deserialise_context_t * ctx , uint8_t byte_value )
+{
+    return true;
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context_t * ctx , uint8_t byte_value )
+{
+    return true;
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static bool srv__deserialise_parse_temperature_payload( srv__deserialise_context_t * ctx , uint8_t byte_value )
+{
+    ctx->log_packet.temperature_payload.value = ( int8_t ) byte_value;
+    ctx->state = srv__deserialise_state_CR;
+    return true;
 }
 
 /*============================================================================

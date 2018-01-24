@@ -39,7 +39,7 @@ Conversion from binary encoded log data to ASCII UTF-8 format
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
-void srv__deserialise_init( char * line_str , uint8_t size );
+void srv__deserialise_init( void );
 bool srv__deserialise_parse( uint8_t byte_value );
 data__log_packet_t srv__deserialise_get_log_packet( void );
 
