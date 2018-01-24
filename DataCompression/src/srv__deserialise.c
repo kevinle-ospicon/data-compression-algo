@@ -60,6 +60,8 @@ typedef struct srv__deserialise_context_s
 ----------------------------------------------------------------------------*/
 static bool srv__deserialise_init_line( char * line_str , uint8_t size );
 static bool srv__deserialise_detect_begin_marker( srv__deserialise_context_t * ctx , uint8_t byte_value );
+static bool srv__deserialise_parse_header( srv__deserialise_context_t * ctx , uint8_t byte_value );
+static uint32_t srv__deserialise_shift_byte( uint8_t byte_value , uint8_t position );
 
 /*----------------------------------------------------------------------------
   global variables
@@ -107,30 +109,7 @@ bool srv__deserialise_parse( uint8_t byte_value )
     else if( srv__deserialise_context.state < srv__deserialise_state_payload )
     {
         //We're getting the header
-        switch( srv__deserialise_context.state )
-        {
-            case srv__deserialise_state_timestamp:
-                srv__deserialise_context.log_packet.header.timestamp |= ( ( 0x000000FF & byte_value ) << ( srv__deserialise_context.dummy_count * 8 ) );
-                printf("%x " , byte_value);
-                if( ( ++ srv__deserialise_context.dummy_count ) >= LOG_DATA_TIMESTAMP_LEN )
-                {
-                    srv__deserialise_context.state = srv__deserialise_state_log_type;
-                }
-                break;
-            case srv__deserialise_state_log_type:
-                srv__deserialise_context.state = srv__deserialise_state_payload_len;
-                srv__deserialise_context.log_packet.header.log_type = byte_value;
-                break;
-            case srv__deserialise_state_payload_len:
-                srv__deserialise_context.state = srv__deserialise_state_payload;
-                srv__deserialise_context.log_packet.header.payload_len = byte_value;
-                srv__deserialise_context.dummy_count = 0;
-                status = true;
-                break;
-            default:
-                srv__deserialise_context.state = srv__deserialise_state_CR;
-                break;
-        }
+        status = srv__deserialise_parse_header( & srv__deserialise_context , byte_value );
     }
     else
     {
@@ -228,6 +207,50 @@ static bool srv__deserialise_detect_begin_marker( srv__deserialise_context_t * c
             break;
     }
     return status;
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static bool srv__deserialise_parse_header( srv__deserialise_context_t * ctx , uint8_t byte_value )
+{
+    bool status = false;
+    switch( ctx->state )
+    {
+        case srv__deserialise_state_timestamp:
+            ctx->log_packet.header.timestamp |= srv__deserialise_shift_byte( byte_value , ctx->dummy_count );
+            if( ( ++ ctx->dummy_count ) >= LOG_DATA_TIMESTAMP_LEN )
+            {
+                ctx->state = srv__deserialise_state_log_type;
+            }
+            break;
+        case srv__deserialise_state_log_type:
+            ctx->state = srv__deserialise_state_payload_len;
+            ctx->log_packet.header.log_type = byte_value;
+            break;
+        case srv__deserialise_state_payload_len:
+            ctx->state = srv__deserialise_state_payload;
+            ctx->log_packet.header.payload_len = byte_value;
+            ctx->dummy_count = 0;
+            status = true;
+            break;
+        default:
+            ctx->state = srv__deserialise_state_CR;
+            break;
+    }
+    return status;
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static uint32_t srv__deserialise_shift_byte( uint8_t byte_value , uint8_t position )
+{
+    return ( ( 0x000000FF & byte_value ) << ( position * 8 ) );
 }
 /*----------------------------------------------------------------------------
   End of file
