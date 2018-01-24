@@ -14,6 +14,7 @@
 ----------------------------------------------------------------------------*/
 #include "unity.h"
 #include "srv__deserialise.h"
+#include "data__log.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -40,6 +41,9 @@
 /*----------------------------------------------------------------------------
   static variables
 ----------------------------------------------------------------------------*/
+static char log_str[ SRV_DESERIALISE_MAX_STRING_LEN ] = "not empty";
+
+// Equivalent Ascii string: "20180119_17:01:01:Temp:22,9"
 static uint8_t temp_packet[] = { 0x0D , 0x0A , 0x3E , 0x3E , 
                                  0x4D , 0x24 , 0x62 , 0x5A ,
                                  0x02 , 0x01 , 0x17 };
@@ -66,14 +70,48 @@ void tearDown(void)
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-void test_srv__deserialise_GetTimestampInAscii(void)
+void test_srv__deserialise_InitialiseEmptyString(void)
 {
-    for( int idx = 0 ; idx < sizeof( temp_packet ) , idx ++ )
-    {
-        srv__deserialise_parse( temp_packet[ idx ] );
-    }
-    
+    srv__deserialise_init( log_str , SRV_DESERIALISE_MAX_STRING_LEN );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0 , log_str , SRV_DESERIALISE_MAX_STRING_LEN );
 }
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__deserialise_DetectBeginMarker(void)
+{
+    bool parse_result = false;
+    for( int idx = 0 ; idx < sizeof( temp_packet ) ; idx ++ )
+    {
+        if ( srv__deserialise_parse( temp_packet[ idx ] ) )
+        {
+            break;
+        }
+    }
+
+    TEST_ASSERT_EQUAL_STRING( LOG_DATA_BEGIN_MARKER , log_str );
+}
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+// void test_srv__deserialise_GetTimestampInAscii(void)
+// {
+//     bool parse_result = false;
+//     for( int idx = 0 ; idx < sizeof( temp_packet ) ; idx ++ )
+//     {
+//         parse_result = srv__deserialise_parse( temp_packet[ idx ] );
+//     }
+//     char * log_str = srv__deserialise_get_log_string();
+
+//     TEST_ASSERT_TRUE( parse_result );
+//     TEST_ASSERT_NOT_NULL( log_str );
+//     TEST_ASSERT_EQUAL_STRING( "20180119_17:01:01:Temp:22,9" , log_str );
+// }
 
 /*----------------------------------------------------------------------------
   private functions
