@@ -18,6 +18,7 @@
 #include "utils.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 /*----------------------------------------------------------------------------
   manifest constants
@@ -47,6 +48,7 @@ static void test_temperature_payload( data__log_packet_t * log_packet );
   static variables
 ----------------------------------------------------------------------------*/
 //20180119_17:01:01:Temp:23
+//20180119_17:01:23:Calibration finish: Single LED, 15.0 mA, 50864
 
 static char log_str[ SRV_DESERIALISE_MAX_STRING_LEN ] = "not empty";
 
@@ -289,8 +291,31 @@ void test_srv__deserialise_GetStringFromTemperatureBinPacket(void)
     char * test_str = srv__deserialise_get_log_packet_line( & str_len );
     printf( "%s" , test_str );
     TEST_ASSERT_NOT_NULL( test_str );
+    TEST_ASSERT_EQUAL_UINT8( str_len , ( uint8_t ) strlen( test_str ) );
     TEST_ASSERT_EQUAL_STRING( "20180119_17:01:01:Temp:23\r\n" , test_str );
 }
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__deserialise_GetStringFromCalibrationBinPacket(void)
+{
+    bool parse_result = false;
+    for( int idx = 0 ; idx < sizeof( cal_packet ) ; idx ++ )
+    {
+        parse_result = srv__deserialise_parse( cal_packet[ idx ] );
+    }
+    TEST_ASSERT_TRUE( parse_result );
+    uint8_t str_len = 0;
+    char * test_str = srv__deserialise_get_log_packet_line( & str_len );
+    printf( "%s" , test_str );
+    TEST_ASSERT_NOT_NULL( test_str );
+    TEST_ASSERT_EQUAL_UINT8( str_len , ( uint8_t ) strlen( test_str ) );
+    TEST_ASSERT_EQUAL_STRING( "20180119_17:01:23:Calibration finish:\r\n" , test_str );
+}
+
 /*----------------------------------------------------------------------------
   private functions
 ----------------------------------------------------------------------------*/

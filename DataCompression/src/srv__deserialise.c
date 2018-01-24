@@ -87,6 +87,8 @@ static bool srv__deserialise_parse_raw_adc_payload( srv__deserialise_context_t *
 static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static bool srv__deserialise_parse_temperature_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static int srv__deserialise_get_timestamp_ascii( srv__deserialise_context_t * ctx );
+static int srv__deserialise_get_log_type_ascii( char * buf , enum data__log_type_e log_type );
+static int srv__deserialise_get_payload_value_ascii( char * buf , data__log_packet_t * log_packet , enum data__log_type_e log_type );
 
 /*----------------------------------------------------------------------------
   global variables
@@ -169,15 +171,19 @@ data__log_packet_t srv__deserialise_get_log_packet( void )
 ============================================================================*/
 char * srv__deserialise_get_log_packet_line( uint8_t * size )
 {
+    int size_so_far;
+    char * buf = srv__deserialise_context.packet_string;
+    enum data__log_type_e log_type = srv__deserialise_context.log_packet.header.log_type;
+
     memset( srv__deserialise_context.packet_string , 0 , SRV_DESERIALISE_MAX_STRING_LEN );
-    int size_so_far = srv__deserialise_get_timestamp_ascii( & srv__deserialise_context );
+    size_so_far = srv__deserialise_get_timestamp_ascii( & srv__deserialise_context );
+    size_so_far += srv__deserialise_get_log_type_ascii( & buf[ size_so_far ] , log_type );
+    size_so_far += srv__deserialise_get_payload_value_ascii( & buf[ size_so_far ] , & srv__deserialise_context.log_packet , log_type );
     
-    size_so_far += sprintf( & srv__deserialise_context.packet_string[ size_so_far ] , "Temp:" , strlen( "Temp:" ) );
+    // int value = srv__deserialise_context.log_packet.temperature_payload.value;
+    // size_so_far += sprintf( & srv__deserialise_context.packet_string[ size_so_far ] , "%d\r\n" , value );
     
-    int value = srv__deserialise_context.log_packet.temperature_payload.value;
-    size_so_far += sprintf( & srv__deserialise_context.packet_string[ size_so_far ] , "%d\r\n" , value );
-    
-    * size = strlen( srv__deserialise_context.packet_string );
+    * size = size_so_far;
     return srv__deserialise_context.packet_string;
 }
 /*----------------------------------------------------------------------------
@@ -358,6 +364,55 @@ static int srv__deserialise_get_timestamp_ascii( srv__deserialise_context_t * ct
     struct tm timeinfo = utils__convert_epoch_to_calendar_time( timestamp );
     return strftime( ctx->packet_string , SRV_DESERIALISE_MAX_STRING_LEN , SRV_DESERIALISE_TIMESTAMP_FORMAT , & timeinfo);
 }
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static int srv__deserialise_get_log_type_ascii( char * buf , enum data__log_type_e log_type )
+{
+    int return_val = 0;
+    switch( log_type )
+    {
+        case data__log_type_raw_adc:
+            break;
+        case data__log_type_cal:
+            return_val = sprintf( buf , "%s:" , LOG_DATA_TYPE_CAL );
+            break;
+        case data__log_type_temperature:
+            return_val = sprintf( buf , "%s:" , LOG_DATA_TYPE_TEMPERATURE );
+            break;
+        default:
+            break;
+    }
+
+    return return_val;
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static int srv__deserialise_get_payload_value_ascii( char * buf , data__log_packet_t * log_packet , enum data__log_type_e log_type )
+{
+    int return_val = 0;
+    switch( log_type )
+    {
+        case data__log_type_raw_adc:
+            break;
+        case data__log_type_cal:
+            break;
+        case data__log_type_temperature:
+            return_val = sprintf( buf , "%d\r\n" , log_packet->temperature_payload.value );
+            break;
+        default:
+            break;
+    }
+    return return_val;
+}
+
 /*----------------------------------------------------------------------------
   End of file
 ----------------------------------------------------------------------------*/
