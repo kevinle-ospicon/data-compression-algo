@@ -23,10 +23,11 @@
 /*----------------------------------------------------------------------------
   macros
 ----------------------------------------------------------------------------*/
-#define MAX_ADC_SAMPLE_COUNT    11
-#define LOG_DATA_BEGIN_MARKER   "\r\n>>"
-#define LOG_DATA_BEGIN_MARKER_LEN   4
-#define LOG_DATA_TIMESTAMP_LEN   sizeof( uint32_t )
+#define MAX_ADC_SAMPLE_COUNT            11
+#define LOG_DATA_BEGIN_MARKER           "\r\n>>"
+#define LOG_DATA_BEGIN_MARKER_LEN       4
+#define LOG_DATA_TIMESTAMP_LEN          sizeof( uint32_t )
+#define LOG_DATA_RAW_ADC_SIZE_BYTES     sizeof( uint16_t )
 
 /*----------------------------------------------------------------------------
   manifest constants

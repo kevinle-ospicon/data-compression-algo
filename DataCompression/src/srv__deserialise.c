@@ -14,6 +14,7 @@
 ----------------------------------------------------------------------------*/
 #include "srv__deserialise.h"
 #include "data__log.h"
+#include "utils.h"
 #include <string.h>
 
 /*----------------------------------------------------------------------------
@@ -55,7 +56,6 @@ enum srv__deserialise_cal_payload_state
 typedef struct srv__deserialise_context_s
 {
     enum srv__deserialise_state state;
-    char * line_str;
     data__log_packet_t log_packet;
     uint8_t dummy_count;
     enum srv__deserialise_cal_payload_state cal_payload_state;
@@ -75,7 +75,6 @@ static bool srv__deserialise_parse_header( srv__deserialise_context_t * ctx , ui
 static bool srv__deserialise_parse_raw_adc_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static bool srv__deserialise_parse_temperature_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
-static uint32_t srv__deserialise_shift_byte( uint8_t byte_value , uint8_t position );
 
 static const srv__deserialise_parse_payload_cb_t parse_payload_cb[ data__log_type_number_of ] = 
 {
@@ -133,7 +132,7 @@ bool srv__deserialise_parse( uint8_t byte_value )
         uint8_t log_type = srv__deserialise_context.log_packet.header.log_type;
         if( log_type < data__log_type_number_of )
         {
-            parse_payload_cb[ log_type ]( & srv__deserialise_context , byte_value );
+            status = parse_payload_cb[ log_type ]( & srv__deserialise_context , byte_value );
         }
     }
     return status;
@@ -219,7 +218,7 @@ static bool srv__deserialise_parse_header( srv__deserialise_context_t * ctx , ui
     switch( ctx->state )
     {
         case srv__deserialise_state_timestamp:
-            ctx->log_packet.header.timestamp |= srv__deserialise_shift_byte( byte_value , ctx->dummy_count );
+            ctx->log_packet.header.timestamp |= utils__shift_byte_left( byte_value , ctx->dummy_count );
             if( ( ++ ctx->dummy_count ) >= LOG_DATA_TIMESTAMP_LEN )
             {
                 ctx->state = srv__deserialise_state_log_type;
@@ -259,7 +258,30 @@ static bool srv__deserialise_parse_raw_adc_payload( srv__deserialise_context_t *
 ============================================================================*/
 static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context_t * ctx , uint8_t byte_value )
 {
-    return true;
+    bool status = false;
+    
+    switch( ctx->cal_payload_state )
+    {
+        case srv__deserialise_cal_payload_state_pga_level:
+            ctx->log_packet.cal_payload.pga_level = byte_value;
+            ctx->cal_payload_state = srv__deserialise_cal_payload_state_raw_value;
+            break;
+        case srv__deserialise_cal_payload_state_raw_value:
+            ctx->log_packet.cal_payload.raw_value |= (uint16_t) ( utils__shift_byte_left( byte_value , ctx->dummy_count ) & 0xFFFF );
+            if( ( ++ ctx->dummy_count ) >= LOG_DATA_RAW_ADC_SIZE_BYTES )
+            {
+                ctx->cal_payload_state = srv__deserialise_cal_payload_state_current;
+            }
+            break;
+        case srv__deserialise_cal_payload_state_current:
+            ctx->log_packet.cal_payload.current = byte_value;
+            status = true;
+            ctx->state = srv__deserialise_state_CR;
+            break;
+        default:
+            break;
+    }
+    return status;
 }
 
 /*============================================================================
@@ -274,15 +296,6 @@ static bool srv__deserialise_parse_temperature_payload( srv__deserialise_context
     return true;
 }
 
-/*============================================================================
-@brief
-------------------------------------------------------------------------------
-@note
-============================================================================*/
-static uint32_t srv__deserialise_shift_byte( uint8_t byte_value , uint8_t position )
-{
-    return ( ( 0x000000FF & byte_value ) << ( position * 8 ) );
-}
 /*----------------------------------------------------------------------------
   End of file
 ----------------------------------------------------------------------------*/

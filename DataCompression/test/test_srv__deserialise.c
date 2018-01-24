@@ -15,6 +15,7 @@
 #include "unity.h"
 #include "srv__deserialise.h"
 #include "data__log.h"
+#include "utils.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -205,7 +206,7 @@ void test_srv__deserialise_GetCalibrationPacket(void)
     }
 
     data__log_packet_t log_packet = srv__deserialise_get_log_packet();
-    printf("0x%08x\r\n" , log_packet.header.timestamp );
+    
     TEST_ASSERT_EQUAL_UINT32( 0x5A622463 , log_packet.header.timestamp );
     TEST_ASSERT_EQUAL_UINT8( ( uint8_t ) data__log_type_cal , log_packet.header.log_type );
     TEST_ASSERT_EQUAL_UINT8( sizeof( data__log_cal_payload_t ) , log_packet.header.payload_len );
