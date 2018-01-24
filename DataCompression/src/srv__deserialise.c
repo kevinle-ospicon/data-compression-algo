@@ -42,13 +42,18 @@ enum srv__deserialise_msg_begin
     msg_begin_begin_2 = '>',
 };
 
+enum srv__deserialise_raw_adc_payload_state
+{
+    srv__deserialise_raw_adc_payload_state_sample_number,
+    srv__deserialise_raw_adc_payload_state_value
+};
+
 enum srv__deserialise_cal_payload_state
 {
     srv__deserialise_cal_payload_state_pga_level,
     srv__deserialise_cal_payload_state_raw_value,
     srv__deserialise_cal_payload_state_current
 };
-
 
 /*----------------------------------------------------------------------------
   type definitions
@@ -59,6 +64,9 @@ typedef struct srv__deserialise_context_s
     data__log_packet_t log_packet;
     uint8_t dummy_count;
     enum srv__deserialise_cal_payload_state cal_payload_state;
+    enum srv__deserialise_raw_adc_payload_state raw_adc_payload_state;
+    bool valid_packet;
+    uint8_t raw_adc_payload_idx;
 } srv__deserialise_context_t;
 
 typedef bool ( * srv__deserialise_parse_payload_cb_t ) ( srv__deserialise_context_t * ctx , uint8_t byte_value );
@@ -70,8 +78,8 @@ typedef bool ( * srv__deserialise_parse_payload_cb_t ) ( srv__deserialise_contex
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
-static bool srv__deserialise_detect_begin_marker( srv__deserialise_context_t * ctx , uint8_t byte_value );
-static bool srv__deserialise_parse_header( srv__deserialise_context_t * ctx , uint8_t byte_value );
+static void srv__deserialise_detect_begin_marker( srv__deserialise_context_t * ctx , uint8_t byte_value );
+static void srv__deserialise_parse_header( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static bool srv__deserialise_parse_raw_adc_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static bool srv__deserialise_parse_temperature_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
@@ -105,6 +113,9 @@ void srv__deserialise_init( void )
     srv__deserialise_context.state = srv__deserialise_state_CR;
     srv__deserialise_context.dummy_count = 0;
     srv__deserialise_context.cal_payload_state = srv__deserialise_cal_payload_state_pga_level;
+    srv__deserialise_context.raw_adc_payload_state = srv__deserialise_raw_adc_payload_state_sample_number;
+    srv__deserialise_context.valid_packet = false;
+    srv__deserialise_context.raw_adc_payload_idx = 0;
     memset( & srv__deserialise_context.log_packet , 0 , data__log_get_packet_len( data__log_type_raw_adc ) );
 }
 
@@ -115,16 +126,15 @@ void srv__deserialise_init( void )
 ============================================================================*/
 bool srv__deserialise_parse( uint8_t byte_value )
 {
-    bool status = false;
     if( srv__deserialise_context.state < srv__deserialise_state_timestamp )
     {
         //We're detecting the begin marker
-        status = srv__deserialise_detect_begin_marker( & srv__deserialise_context , byte_value );
+        srv__deserialise_detect_begin_marker( & srv__deserialise_context , byte_value );
     }
     else if( srv__deserialise_context.state < srv__deserialise_state_payload )
     {
         //We're getting the header
-        status = srv__deserialise_parse_header( & srv__deserialise_context , byte_value );
+        srv__deserialise_parse_header( & srv__deserialise_context , byte_value );
     }
     else
     {
@@ -132,10 +142,10 @@ bool srv__deserialise_parse( uint8_t byte_value )
         uint8_t log_type = srv__deserialise_context.log_packet.header.log_type;
         if( log_type < data__log_type_number_of )
         {
-            status = parse_payload_cb[ log_type ]( & srv__deserialise_context , byte_value );
+            srv__deserialise_context.valid_packet = parse_payload_cb[ log_type ]( & srv__deserialise_context , byte_value );
         }
     }
-    return status;
+    return srv__deserialise_context.valid_packet;
 }
 
 /*============================================================================
@@ -156,9 +166,8 @@ data__log_packet_t srv__deserialise_get_log_packet( void )
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-static bool srv__deserialise_detect_begin_marker( srv__deserialise_context_t * ctx , uint8_t byte_value )
+static void srv__deserialise_detect_begin_marker( srv__deserialise_context_t * ctx , uint8_t byte_value )
 {
-    bool status = false;
     switch( ctx->state )
     {
         case srv__deserialise_state_CR:
@@ -192,8 +201,6 @@ static bool srv__deserialise_detect_begin_marker( srv__deserialise_context_t * c
             if( byte_value == msg_begin_begin_2 )
             {
                 ctx->state = srv__deserialise_state_timestamp;
-                status = true; // the begin marker has been detected
-                ctx->dummy_count = 0;
             }
             else
             {
@@ -204,7 +211,6 @@ static bool srv__deserialise_detect_begin_marker( srv__deserialise_context_t * c
             ctx->state = srv__deserialise_state_CR;
             break;
     }
-    return status;
 }
 
 /*============================================================================
@@ -212,15 +218,15 @@ static bool srv__deserialise_detect_begin_marker( srv__deserialise_context_t * c
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-static bool srv__deserialise_parse_header( srv__deserialise_context_t * ctx , uint8_t byte_value )
+static void srv__deserialise_parse_header( srv__deserialise_context_t * ctx , uint8_t byte_value )
 {
-    bool status = false;
     switch( ctx->state )
     {
         case srv__deserialise_state_timestamp:
             ctx->log_packet.header.timestamp |= utils__shift_byte_left( byte_value , ctx->dummy_count );
             if( ( ++ ctx->dummy_count ) >= LOG_DATA_TIMESTAMP_LEN )
             {
+                ctx->dummy_count = 0;
                 ctx->state = srv__deserialise_state_log_type;
             }
             break;
@@ -231,8 +237,38 @@ static bool srv__deserialise_parse_header( srv__deserialise_context_t * ctx , ui
         case srv__deserialise_state_payload_len:
             ctx->state = srv__deserialise_state_payload;
             ctx->log_packet.header.payload_len = byte_value;
-            ctx->dummy_count = 0;
-            status = true;
+            break;
+        default:
+            ctx->state = srv__deserialise_state_CR;
+            break;
+    }
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static bool srv__deserialise_parse_raw_adc_payload( srv__deserialise_context_t * ctx , uint8_t byte_value )
+{
+    bool status = false;
+    switch( ctx->raw_adc_payload_state )
+    {
+        case srv__deserialise_raw_adc_payload_state_sample_number:
+            ctx->log_packet.raw_adc_payload.sample_count = byte_value;
+            ctx->raw_adc_payload_state = srv__deserialise_raw_adc_payload_state_value;
+            break;
+        case srv__deserialise_raw_adc_payload_state_value:
+            ctx->log_packet.raw_adc_payload.value[ ctx->raw_adc_payload_idx ] |= (uint16_t) ( utils__shift_byte_left( byte_value , ctx->dummy_count ) & 0xFFFF );
+            if( ( ++ ctx->dummy_count ) >= LOG_DATA_RAW_ADC_SIZE_BYTES )
+            {
+                ctx->dummy_count = 0;
+                if( ++ ctx->raw_adc_payload_idx >= ctx->log_packet.raw_adc_payload.sample_count )
+                {
+                    status = true;
+                    ctx->state = srv__deserialise_state_CR;
+                }
+            }
             break;
         default:
             ctx->state = srv__deserialise_state_CR;
@@ -246,20 +282,10 @@ static bool srv__deserialise_parse_header( srv__deserialise_context_t * ctx , ui
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-static bool srv__deserialise_parse_raw_adc_payload( srv__deserialise_context_t * ctx , uint8_t byte_value )
-{
-    return true;
-}
-
-/*============================================================================
-@brief
-------------------------------------------------------------------------------
-@note
-============================================================================*/
 static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context_t * ctx , uint8_t byte_value )
 {
     bool status = false;
-    
+
     switch( ctx->cal_payload_state )
     {
         case srv__deserialise_cal_payload_state_pga_level:
@@ -270,6 +296,7 @@ static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context
             ctx->log_packet.cal_payload.raw_value |= (uint16_t) ( utils__shift_byte_left( byte_value , ctx->dummy_count ) & 0xFFFF );
             if( ( ++ ctx->dummy_count ) >= LOG_DATA_RAW_ADC_SIZE_BYTES )
             {
+                ctx->dummy_count = 0;
                 ctx->cal_payload_state = srv__deserialise_cal_payload_state_current;
             }
             break;
@@ -279,6 +306,7 @@ static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context
             ctx->state = srv__deserialise_state_CR;
             break;
         default:
+            ctx->state = srv__deserialise_state_CR;
             break;
     }
     return status;

@@ -58,6 +58,12 @@ static uint8_t correct_header[] = { 0x0D , 0x0A , 0x3E , 0x3E ,
 static uint8_t cal_packet[] = { 0x0D , 0x0A , 0x3E , 0x3E , 
                                 0x63 , 0x24 , 0x62 , 0x5A , 0x01 , 0x04 , 
                                 0x00 , 0xB0 , 0xC6 , 0x96 };
+static uint8_t raw_adc_packet[] = { 0x0D , 0x0A , 0x3E , 0x3E , 
+                                    0x4F , 0x24 , 0x62 , 0x5A , 0x00 , 0x17 , 
+                                    0x0A , 0xB5 , 0x9F , 0x27 , 0x9E , 0xEF , 
+                                    0x9D , 0x18 , 0x9D , 0x5B , 0x9C , 0xC8 , 
+                                    0x9B , 0x78 , 0x9B , 0x8F , 0x9B , 0xA2 , 
+                                    0x9C , 0x9E , 0x9D , 0x00 , 0x00 };
 /*----------------------------------------------------------------------------
   public functions
 ----------------------------------------------------------------------------*/
@@ -74,22 +80,6 @@ void setUp(void)
 
 void tearDown(void)
 {
-}
-
-/*============================================================================
-@brief
-------------------------------------------------------------------------------
-@note
-============================================================================*/
-void test_srv__deserialise_DetectCorrectBeginMarker(void)
-{
-    bool parse_result = false;
-    for( int idx = 0 ; idx < sizeof( correct_begin_marker ) ; idx ++ )
-    {
-        parse_result = srv__deserialise_parse( correct_begin_marker[ idx ] );
-    }
-
-    TEST_ASSERT_TRUE( parse_result );
 }
 
 /*============================================================================
@@ -206,7 +196,7 @@ void test_srv__deserialise_GetCalibrationPacket(void)
     }
 
     data__log_packet_t log_packet = srv__deserialise_get_log_packet();
-    
+
     TEST_ASSERT_EQUAL_UINT32( 0x5A622463 , log_packet.header.timestamp );
     TEST_ASSERT_EQUAL_UINT8( ( uint8_t ) data__log_type_cal , log_packet.header.log_type );
     TEST_ASSERT_EQUAL_UINT8( sizeof( data__log_cal_payload_t ) , log_packet.header.payload_len );
@@ -216,6 +206,28 @@ void test_srv__deserialise_GetCalibrationPacket(void)
     TEST_ASSERT_EQUAL_UINT8( 150 , log_packet.cal_payload.current );
 }
 
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__deserialise_GetRawAdcPacket(void)
+{
+    bool parse_result = false;
+    for( int idx = 0 ; idx < sizeof( raw_adc_packet ) ; idx ++ )
+    {
+        parse_result = srv__deserialise_parse( raw_adc_packet[ idx ] );
+    }
+
+    data__log_packet_t log_packet = srv__deserialise_get_log_packet();
+
+    TEST_ASSERT_EQUAL_UINT32( 0x5A62244F , log_packet.header.timestamp );
+    TEST_ASSERT_EQUAL_UINT8( ( uint8_t ) data__log_type_raw_adc , log_packet.header.log_type );
+    TEST_ASSERT_EQUAL_UINT8( sizeof( data__log_raw_adc_payload_t ) , log_packet.header.payload_len );
+
+    TEST_ASSERT_EQUAL_UINT8( 0x0A , log_packet.raw_adc_payload.sample_count );
+    TEST_ASSERT_EQUAL_MEMORY( & raw_adc_packet[ 11 ] , log_packet.raw_adc_payload.value , 0x17 );
+}
 /*----------------------------------------------------------------------------
   private functions
 ----------------------------------------------------------------------------*/
