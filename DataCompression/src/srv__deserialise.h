@@ -16,6 +16,7 @@ Conversion from binary encoded log data to ASCII UTF-8 format
 /*----------------------------------------------------------------------------
   nested include files
 ----------------------------------------------------------------------------*/
+#include "data__log.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -40,6 +41,7 @@ Conversion from binary encoded log data to ASCII UTF-8 format
 ----------------------------------------------------------------------------*/
 void srv__deserialise_init( char * line_str , uint8_t size );
 bool srv__deserialise_parse( uint8_t byte_value );
+data__log_packet_t srv__deserialise_get_log_packet( void );
 
 /*----------------------------------------------------------------------------
   compile time checks

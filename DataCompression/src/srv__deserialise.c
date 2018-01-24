@@ -47,6 +47,8 @@ typedef struct srv__deserialise_context_s
 {
     enum srv__deserialise_state state;
     char * line_str;
+    data__log_packet_t log_packet;
+    uint8_t dummy_count;
 } srv__deserialise_context_t;
 
 /*----------------------------------------------------------------------------
@@ -57,6 +59,7 @@ typedef struct srv__deserialise_context_s
   prototypes
 ----------------------------------------------------------------------------*/
 static bool srv__deserialise_init_line( char * line_str , uint8_t size );
+static bool srv__deserialise_detect_begin_marker( srv__deserialise_context_t * ctx , uint8_t byte_value );
 
 /*----------------------------------------------------------------------------
   global variables
@@ -85,6 +88,7 @@ void srv__deserialise_init( char * line_str , uint8_t size )
 
     srv__deserialise_context.state = srv__deserialise_state_CR;
     srv__deserialise_context.line_str = line_str;
+    srv__deserialise_context.dummy_count = 0;
 }
 
 /*============================================================================
@@ -95,41 +99,55 @@ void srv__deserialise_init( char * line_str , uint8_t size )
 bool srv__deserialise_parse( uint8_t byte_value )
 {
     bool status = false;
-    switch( srv__deserialise_context.state )
+    if( srv__deserialise_context.state < srv__deserialise_state_timestamp )
     {
-        case srv__deserialise_state_CR:
-            if( byte_value == msg_begin_CR )
-            {
-                srv__deserialise_context.state = srv__deserialise_state_LF;
-            }
-            break;
-        case srv__deserialise_state_LF:
-            if( byte_value == msg_begin_LF )
-            {
-                srv__deserialise_context.state = srv__deserialise_state_begin_1;
-            }
-            break;
-        case srv__deserialise_state_begin_1:
-            if( byte_value == msg_begin_begin_1 )
-            {
-                srv__deserialise_context.state = srv__deserialise_state_begin_2;
-            }
-            break;
-        case srv__deserialise_state_begin_2:
-            if( byte_value == msg_begin_begin_2 )
-            {
-                srv__deserialise_context.state = srv__deserialise_state_timestamp;
-            }
-            memcpy( srv__deserialise_context.line_str , LOG_DATA_BEGIN_MARKER , LOG_DATA_BEGIN_MARKER_LEN );
-            status = true;
-            break;
-        default:
-            srv__deserialise_context.state = srv__deserialise_state_CR;
-            break;
+        //We're detecting the begin marker
+        status = srv__deserialise_detect_begin_marker( & srv__deserialise_context , byte_value );
+    }
+    else if( srv__deserialise_context.state < srv__deserialise_state_payload )
+    {
+        //We're getting the header
+        switch( srv__deserialise_context.state )
+        {
+            case srv__deserialise_state_timestamp:
+                srv__deserialise_context.log_packet.header.timestamp |= ( ( 0x000000FF & byte_value ) << ( srv__deserialise_context.dummy_count * 8 ) );
+                printf("%x " , byte_value);
+                if( ( ++ srv__deserialise_context.dummy_count ) >= LOG_DATA_TIMESTAMP_LEN )
+                {
+                    srv__deserialise_context.state = srv__deserialise_state_log_type;
+                }
+                break;
+            case srv__deserialise_state_log_type:
+                srv__deserialise_context.state = srv__deserialise_state_payload_len;
+                srv__deserialise_context.log_packet.header.log_type = byte_value;
+                break;
+            case srv__deserialise_state_payload_len:
+                srv__deserialise_context.state = srv__deserialise_state_payload;
+                srv__deserialise_context.log_packet.header.payload_len = byte_value;
+                srv__deserialise_context.dummy_count = 0;
+                status = true;
+                break;
+            default:
+                srv__deserialise_context.state = srv__deserialise_state_CR;
+                break;
+        }
+    }
+    else
+    {
+        //We're getting the payload
     }
     return status;
 }
 
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+data__log_packet_t srv__deserialise_get_log_packet( void )
+{
+    return srv__deserialise_context.log_packet;
+}
 /*----------------------------------------------------------------------------
   private functions
 ----------------------------------------------------------------------------*/
@@ -157,6 +175,60 @@ static bool srv__deserialise_init_line( char * line_str , uint8_t size )
     return true;
 }
 
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static bool srv__deserialise_detect_begin_marker( srv__deserialise_context_t * ctx , uint8_t byte_value )
+{
+    bool status = false;
+    switch( ctx->state )
+    {
+        case srv__deserialise_state_CR:
+            if( byte_value == msg_begin_CR )
+            {
+                ctx->state = srv__deserialise_state_LF;
+            }
+            break;
+        case srv__deserialise_state_LF:
+            if( byte_value == msg_begin_LF )
+            {
+                ctx->state = srv__deserialise_state_begin_1;
+            }
+            else
+            {
+                ctx->state = srv__deserialise_state_CR;
+            }
+            break;
+        case srv__deserialise_state_begin_1:
+            if( byte_value == msg_begin_begin_1 )
+            {
+                ctx->state = srv__deserialise_state_begin_2;
+            }
+            else
+            {
+                ctx->state = srv__deserialise_state_CR;
+            }
+            break;
+        case srv__deserialise_state_begin_2:
+            if( byte_value == msg_begin_begin_2 )
+            {
+                ctx->state = srv__deserialise_state_timestamp;
+                status = true; // the begin marker has been detected
+                ctx->dummy_count = 0;
+            }
+            else
+            {
+                ctx->state = srv__deserialise_state_CR;
+            }
+            break;
+        default:
+            ctx->state = srv__deserialise_state_CR;
+            break;
+    }
+    return status;
+}
 /*----------------------------------------------------------------------------
   End of file
 ----------------------------------------------------------------------------*/
