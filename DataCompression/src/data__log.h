@@ -29,6 +29,15 @@
 #define LOG_DATA_TIMESTAMP_LEN          sizeof( uint32_t )
 #define LOG_DATA_RAW_ADC_SIZE_BYTES     sizeof( uint16_t )
 
+#define LOG_DATA_TYPE_RAW_ADC           "Raw"
+#define LOG_DATA_TYPE_CAL               "Calibration finish"
+#define LOG_DATA_TYPE_TEMPERATURE       "Temp"
+
+#define LOG_DATA_CAL_SINGLE_LED         "Single LED"
+#define LOG_DATA_CAL_PGA_1              "PGA1"
+#define LOG_DATA_CAL_PGA_2              "PGA2"
+#define LOG_DATA_CAL_PGA_4              "PGA4"
+
 /*----------------------------------------------------------------------------
   manifest constants
 ----------------------------------------------------------------------------*/

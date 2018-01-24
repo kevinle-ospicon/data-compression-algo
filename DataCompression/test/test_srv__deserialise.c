@@ -46,6 +46,8 @@ static void test_temperature_payload( data__log_packet_t * log_packet );
 /*----------------------------------------------------------------------------
   static variables
 ----------------------------------------------------------------------------*/
+//20180119_17:01:01:Temp:23
+
 static char log_str[ SRV_DESERIALISE_MAX_STRING_LEN ] = "not empty";
 
 static uint8_t wrong_begin_marker[] = { 0x0D , 0x0A , 0x3E , 0x00 };
@@ -268,6 +270,25 @@ void test_srv__deserialise_GetMixedackets(void)
             test_payload_cb[ log_packet.header.log_type ]( & log_packet );
         }
     }
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__deserialise_GetStringFromTemperatureBinPacket(void)
+{
+    bool parse_result = false;
+    for( int idx = 0 ; idx < sizeof( temp_packet ) ; idx ++ )
+    {
+        parse_result = srv__deserialise_parse( temp_packet[ idx ] );
+    }
+    TEST_ASSERT_TRUE( parse_result );
+    uint8_t str_len = 0;
+    char * test_str = srv__deserialise_get_log_packet_line( & str_len );
+    TEST_ASSERT_NOT_NULL( test_str );
+    TEST_ASSERT_EQUAL_STRING( "20180119_17:01:01" , test_str );
 }
 /*----------------------------------------------------------------------------
   private functions

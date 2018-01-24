@@ -16,6 +16,7 @@
 #include "data__log.h"
 #include "utils.h"
 #include <string.h>
+#include <stdio.h>
 
 /*----------------------------------------------------------------------------
   manifest constants
@@ -67,6 +68,7 @@ typedef struct srv__deserialise_context_s
     enum srv__deserialise_raw_adc_payload_state raw_adc_payload_state;
     bool valid_packet;
     uint8_t raw_adc_payload_idx;
+    char packet_string[ SRV_DESERIALISE_MAX_STRING_LEN ];
 } srv__deserialise_context_t;
 
 typedef bool ( * srv__deserialise_parse_payload_cb_t ) ( srv__deserialise_context_t * ctx , uint8_t byte_value );
@@ -74,6 +76,7 @@ typedef bool ( * srv__deserialise_parse_payload_cb_t ) ( srv__deserialise_contex
 /*----------------------------------------------------------------------------
   macros
 ----------------------------------------------------------------------------*/
+#define SRV_DESERIALISE_TIMESTAMP_FORMAT "%Y%m%d_%H:%M:%S"
 
 /*----------------------------------------------------------------------------
   prototypes
@@ -83,13 +86,8 @@ static void srv__deserialise_parse_header( srv__deserialise_context_t * ctx , ui
 static bool srv__deserialise_parse_raw_adc_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static bool srv__deserialise_parse_temperature_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
+static int srv__deserialise_get_timestamp_ascii( srv__deserialise_context_t * ctx );
 
-static const srv__deserialise_parse_payload_cb_t parse_payload_cb[ data__log_type_number_of ] = 
-{
-    srv__deserialise_parse_raw_adc_payload,
-    srv__deserialise_parse_calibration_payload,
-    srv__deserialise_parse_temperature_payload,
-};
 /*----------------------------------------------------------------------------
   global variables
 ----------------------------------------------------------------------------*/
@@ -98,6 +96,12 @@ static const srv__deserialise_parse_payload_cb_t parse_payload_cb[ data__log_typ
   static variables
 ----------------------------------------------------------------------------*/
 static srv__deserialise_context_t srv__deserialise_context;
+static const srv__deserialise_parse_payload_cb_t parse_payload_cb[ data__log_type_number_of ] = 
+{
+    srv__deserialise_parse_raw_adc_payload,
+    srv__deserialise_parse_calibration_payload,
+    srv__deserialise_parse_temperature_payload,
+};
 
 /*----------------------------------------------------------------------------
   public functions
@@ -156,6 +160,20 @@ bool srv__deserialise_parse( uint8_t byte_value )
 data__log_packet_t srv__deserialise_get_log_packet( void )
 {
     return srv__deserialise_context.log_packet;
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+char * srv__deserialise_get_log_packet_line( uint8_t * size )
+{
+    memset( srv__deserialise_context.packet_string , 0 , SRV_DESERIALISE_MAX_STRING_LEN );
+    int size_so_far = srv__deserialise_get_timestamp_ascii( & srv__deserialise_context );
+    
+    * size = strlen( srv__deserialise_context.packet_string );
+    return srv__deserialise_context.packet_string;
 }
 /*----------------------------------------------------------------------------
   private functions
@@ -324,6 +342,17 @@ static bool srv__deserialise_parse_temperature_payload( srv__deserialise_context
     return true;
 }
 
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static int srv__deserialise_get_timestamp_ascii( srv__deserialise_context_t * ctx )
+{
+    uint32_t timestamp = ctx->log_packet.header.timestamp;
+    struct tm timeinfo = utils__convert_epoch_to_calendar_time( timestamp );
+    return strftime( ctx->packet_string , SRV_DESERIALISE_MAX_STRING_LEN , SRV_DESERIALISE_TIMESTAMP_FORMAT , & timeinfo);
+}
 /*----------------------------------------------------------------------------
   End of file
 ----------------------------------------------------------------------------*/

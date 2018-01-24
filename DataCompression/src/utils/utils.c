@@ -69,6 +69,17 @@ uint32_t utils__convert_calendar_time_to_epoch( int year , int month , int day ,
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
+struct tm utils__convert_epoch_to_calendar_time( uint32_t epoch )
+{
+    time_t t = epoch;
+    return * gmtime( & t );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
 uint32_t utils__shift_byte_left( uint8_t byte_value , uint8_t position )
 {
     return ( ( 0x000000FF & byte_value ) << ( position * 8 ) );

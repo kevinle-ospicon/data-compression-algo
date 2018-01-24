@@ -100,15 +100,15 @@ static uint8_t srv__serialise_parse_log_data_type_to_bin( char * type )
 {
     uint8_t return_type = data__log_type_number_of;
 
-    if ( strstr( type , "Raw" )  != NULL )
+    if ( strstr( type , LOG_DATA_TYPE_RAW_ADC )  != NULL )
     {
         return_type = data__log_type_raw_adc;
     }
-    else if( strstr( type , "Calibration finish" )  != NULL )
+    else if( strstr( type , LOG_DATA_TYPE_CAL )  != NULL )
     {
         return_type = data__log_type_cal;
     }
-    else if( strstr( type , "Temp" )  != NULL )
+    else if( strstr( type , LOG_DATA_TYPE_TEMPERATURE )  != NULL )
     {
         return_type = data__log_type_temperature;
     }
@@ -190,19 +190,19 @@ static void srv__serialise_parse_temperature_payload_to_bin( uint32_t timestamp 
 static uint8_t srv__serialise_get_pga_level( char * pga_level )
 {
     uint8_t val = data__log_cal_pga_lvl_number_of;
-    if( strstr( pga_level , "Single LED" ) != NULL )
+    if( strstr( pga_level , LOG_DATA_CAL_SINGLE_LED ) != NULL )
     {
         val = data__log_cal_pga_lvl_single_led;
     }
-    else if ( strstr( pga_level , "PGA1" ) != NULL )
+    else if ( strstr( pga_level , LOG_DATA_CAL_PGA_1 ) != NULL )
     {
         val = data__log_cal_pga_lvl_1;
     }
-    else if ( strstr( pga_level , "PGA2" ) != NULL )
+    else if ( strstr( pga_level , LOG_DATA_CAL_PGA_2 ) != NULL )
     {
         val = data__log_cal_pga_lvl_2;
     }
-    else if ( strstr( pga_level , "PGA4" ) != NULL )
+    else if ( strstr( pga_level , LOG_DATA_CAL_PGA_4 ) != NULL )
     {
         val = data__log_cal_pga_lvl_4;
     }
