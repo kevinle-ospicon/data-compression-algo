@@ -287,8 +287,9 @@ void test_srv__deserialise_GetStringFromTemperatureBinPacket(void)
     TEST_ASSERT_TRUE( parse_result );
     uint8_t str_len = 0;
     char * test_str = srv__deserialise_get_log_packet_line( & str_len );
+    printf( "%s" , test_str );
     TEST_ASSERT_NOT_NULL( test_str );
-    TEST_ASSERT_EQUAL_STRING( "20180119_17:01:01" , test_str );
+    TEST_ASSERT_EQUAL_STRING( "20180119_17:01:01:Temp:23\r\n" , test_str );
 }
 /*----------------------------------------------------------------------------
   private functions

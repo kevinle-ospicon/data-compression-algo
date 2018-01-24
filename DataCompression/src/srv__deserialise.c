@@ -76,7 +76,7 @@ typedef bool ( * srv__deserialise_parse_payload_cb_t ) ( srv__deserialise_contex
 /*----------------------------------------------------------------------------
   macros
 ----------------------------------------------------------------------------*/
-#define SRV_DESERIALISE_TIMESTAMP_FORMAT "%Y%m%d_%H:%M:%S"
+#define SRV_DESERIALISE_TIMESTAMP_FORMAT "%Y%m%d_%H:%M:%S:"
 
 /*----------------------------------------------------------------------------
   prototypes
@@ -171,6 +171,11 @@ char * srv__deserialise_get_log_packet_line( uint8_t * size )
 {
     memset( srv__deserialise_context.packet_string , 0 , SRV_DESERIALISE_MAX_STRING_LEN );
     int size_so_far = srv__deserialise_get_timestamp_ascii( & srv__deserialise_context );
+    
+    size_so_far += sprintf( & srv__deserialise_context.packet_string[ size_so_far ] , "Temp:" , strlen( "Temp:" ) );
+    
+    int value = srv__deserialise_context.log_packet.temperature_payload.value;
+    size_so_far += sprintf( & srv__deserialise_context.packet_string[ size_so_far ] , "%d\r\n" , value );
     
     * size = strlen( srv__deserialise_context.packet_string );
     return srv__deserialise_context.packet_string;
