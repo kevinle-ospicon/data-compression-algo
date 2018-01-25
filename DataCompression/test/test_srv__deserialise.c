@@ -140,6 +140,24 @@ static uint8_t temp_cal_raw_packets[] =
     0x9D , 0x00 , 0x00 
 };
 
+static uint8_t mixed_packets[] = 
+{ 
+    // temperature packet
+    0x0D , 0x0A , 0x3E , 0x3E , 0x4D , 0x24 , 0x62 , 0x5A , 0x02 , 0x01 , 
+    0x17 , 
+    // calibration packet
+    0x0D , 0x0A , 0x3E , 0x3E , 0x63 , 0x24 , 0x62 , 0x5A , 0x01 , 0x04 , 
+    0x00 , 0xB0 , 0xC6 , 0x96 ,
+    // raw adc packet 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x4F , 0x24 , 0x62 , 0x5A , 0x00 , 0x17 , 
+    0x0A , 0xB5 , 0x9F , 0x27 , 0x9E , 0xEF , 0x9D , 0x18 , 0x9D , 0x5B , 
+    0x9C , 0xC8 , 0x9B , 0x78 , 0x9B , 0x8F , 0x9B , 0xA2 , 0x9C , 0x9E , 
+    0x9D , 0x00 , 0x00 ,
+    // temperature packet
+    0x0D , 0x0A , 0x3E , 0x3E , 0x4D , 0x24 , 0x62 , 0x5A , 0x02 , 0x01 , 
+    0x17 , 
+};
+
 static const test_payload_cb_t test_payload_cb [ data__log_type_number_of ] = 
 {
     test_raw_adc_payload,
@@ -159,6 +177,23 @@ static char * raw_adc_packet_ascii_sample[] =
     "20180119_17:01:03:Raw:39823\r\n",
     "20180119_17:01:03:Raw:40098\r\n",
     "20180119_17:01:03:Raw:40350\r\n"
+};
+
+static char * mixed_ascii_sample[] = 
+{
+    TEMPERATURE_ASCII_SAMPLE,
+    CAL_SINGLE_LED_ASCII_SAMPLE,
+    "20180119_17:01:03:Raw:40885\r\n",
+    "20180119_17:01:03:Raw:40487\r\n",
+    "20180119_17:01:03:Raw:40431\r\n",
+    "20180119_17:01:03:Raw:40216\r\n",
+    "20180119_17:01:03:Raw:40027\r\n",
+    "20180119_17:01:03:Raw:39880\r\n",
+    "20180119_17:01:03:Raw:39800\r\n",
+    "20180119_17:01:03:Raw:39823\r\n",
+    "20180119_17:01:03:Raw:40098\r\n",
+    "20180119_17:01:03:Raw:40350\r\n",
+    TEMPERATURE_ASCII_SAMPLE
 };
 /*----------------------------------------------------------------------------
   public functions
@@ -428,8 +463,9 @@ void test_srv__deserialise_GetStringFromRawAdcBinPacketWithSingleSampleToAscii(v
     for( int idx = 0 ; idx < sizeof( raw_adc_single_packet ) ; idx ++ )
     {
         parse_result = srv__deserialise_parse( raw_adc_single_packet[ idx ] );
+        if( parse_result ) break;
     }
-    TEST_ASSERT_TRUE( parse_result );
+
     test_cal_payload_ascii( RAW_ADC_SINGLE_ASCII_SAMPLE );
 }
 
@@ -444,14 +480,47 @@ void test_srv__deserialise_GetStringFromRawAdcBinPacketWithMultipleSamplesToAsci
     for( int idx = 0 ; idx < sizeof( raw_adc_packet ) ; idx ++ )
     {
         parse_result = srv__deserialise_parse( raw_adc_packet[ idx ] );
+        if( parse_result ) break;
     }
-
-    TEST_ASSERT_TRUE( parse_result );
 
     int total_lines = srv__deserialise_get_pending_raw_adc_lines();
     for( int count = 0 ; count < total_lines ; count ++ )
     {
         test_cal_payload_ascii( raw_adc_packet_ascii_sample[ count ] );
+    }
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__deserialise_GetStringFromMixedPacketsWithToAscii(void)
+{
+    bool parse_result = false;
+    int total_adc_lines = 0;
+    int count = 0;
+    for( int idx = 0 ; idx < sizeof( mixed_packets ) ; idx ++ )
+    {
+        parse_result = srv__deserialise_parse( mixed_packets[ idx ] );
+        if( parse_result )
+        {
+            total_adc_lines = srv__deserialise_get_pending_raw_adc_lines();
+            printf("count: %d\r\n" , count);
+            printf("total_adc_lines: %d\r\n" , total_adc_lines);
+            printf("expected: %s\r\n" ,  mixed_ascii_sample[ count ]);
+            if( total_adc_lines > 0 )
+            {
+                for( int idx = 0 ; idx < total_adc_lines ; idx ++ )
+                {
+                    test_cal_payload_ascii( mixed_ascii_sample[ count ++ ] );
+                }
+            }
+            else
+            {
+                test_cal_payload_ascii( mixed_ascii_sample[ count ++ ] );
+            }
+        }
     }
 }
 
@@ -509,7 +578,7 @@ static void test_cal_payload_ascii( char * expected )
 {
     uint8_t str_len = 0;
     char * test_str = srv__deserialise_get_log_packet_line( & str_len );
-    printf( "%s" , test_str );
+    printf( "actual: %s" , test_str );
     TEST_ASSERT_NOT_NULL( test_str );
     TEST_ASSERT_EQUAL_UINT8( str_len , ( uint8_t ) strlen( test_str ) );
     TEST_ASSERT_EQUAL_STRING( expected , test_str );

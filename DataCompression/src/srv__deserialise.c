@@ -14,7 +14,7 @@
 ----------------------------------------------------------------------------*/
 #include "srv__deserialise.h"
 #include "data__log.h"
-#include "utils.h"
+#include "utils/utils.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -81,6 +81,7 @@ typedef bool ( * srv__deserialise_parse_payload_cb_t ) ( srv__deserialise_contex
 /*----------------------------------------------------------------------------
   prototypes
 ----------------------------------------------------------------------------*/
+static void srv__deserialise_init_log_data( void );
 static void srv__deserialise_detect_begin_marker( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static void srv__deserialise_parse_header( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static bool srv__deserialise_parse_raw_adc_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
@@ -118,12 +119,7 @@ static const srv__deserialise_parse_payload_cb_t parse_payload_cb[ data__log_typ
 void srv__deserialise_init( void )
 {
     srv__deserialise_context.state = srv__deserialise_state_CR;
-    srv__deserialise_context.dummy_count = 0;
-    srv__deserialise_context.cal_payload_state = srv__deserialise_cal_payload_state_pga_level;
-    srv__deserialise_context.raw_adc_payload_state = srv__deserialise_raw_adc_payload_state_sample_number;
-    srv__deserialise_context.valid_packet = false;
-    srv__deserialise_context.raw_adc_payload_idx = 0;
-    memset( & srv__deserialise_context.log_packet , 0 , data__log_get_packet_len( data__log_type_raw_adc ) );
+    srv__deserialise_init_log_data();
 }
 
 /*============================================================================
@@ -133,6 +129,7 @@ void srv__deserialise_init( void )
 ============================================================================*/
 bool srv__deserialise_parse( uint8_t byte_value )
 {
+    srv__deserialise_context.valid_packet = false;
     if( srv__deserialise_context.state < srv__deserialise_state_timestamp )
     {
         //We're detecting the begin marker
@@ -211,6 +208,21 @@ int srv__deserialise_get_pending_raw_adc_lines( void )
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
+static void srv__deserialise_init_log_data( void )
+{
+    srv__deserialise_context.dummy_count = 0;
+    srv__deserialise_context.cal_payload_state = srv__deserialise_cal_payload_state_pga_level;
+    srv__deserialise_context.raw_adc_payload_state = srv__deserialise_raw_adc_payload_state_sample_number;
+    srv__deserialise_context.valid_packet = false;
+    srv__deserialise_context.raw_adc_payload_idx = 0;
+    memset( & srv__deserialise_context.log_packet , 0 , data__log_get_packet_len( data__log_type_raw_adc ) );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
 static void srv__deserialise_detect_begin_marker( srv__deserialise_context_t * ctx , uint8_t byte_value )
 {
     switch( ctx->state )
@@ -218,7 +230,6 @@ static void srv__deserialise_detect_begin_marker( srv__deserialise_context_t * c
         case srv__deserialise_state_CR:
             if( byte_value == msg_begin_CR )
             {
-                srv__deserialise_init();
                 ctx->state = srv__deserialise_state_LF;
             }
             break;
@@ -245,6 +256,7 @@ static void srv__deserialise_detect_begin_marker( srv__deserialise_context_t * c
         case srv__deserialise_state_begin_2:
             if( byte_value == msg_begin_begin_2 )
             {
+                srv__deserialise_init_log_data();
                 ctx->state = srv__deserialise_state_timestamp;
             }
             else
