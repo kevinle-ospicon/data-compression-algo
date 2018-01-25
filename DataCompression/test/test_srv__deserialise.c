@@ -39,6 +39,7 @@ typedef void ( * test_payload_cb_t ) ( data__log_packet_t * log_packet );
 static void test_raw_adc_payload( data__log_packet_t * log_packet );
 static void test_calibraion_payload( data__log_packet_t * log_packet );
 static void test_temperature_payload( data__log_packet_t * log_packet );
+static void test_cal_payload_ascii( char * expected );
 
 /*----------------------------------------------------------------------------
   global variables
@@ -71,6 +72,24 @@ static uint8_t cal_packet[] =
 { 
     0x0D , 0x0A , 0x3E , 0x3E , 0x63 , 0x24 , 0x62 , 0x5A , 0x01 , 0x04 , 
     0x00 , 0xB0 , 0xC6 , 0x96 
+};
+
+static uint8_t cal_packet_pga_1[] = 
+{ 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x63 , 0x24 , 0x62 , 0x5A , 0x01 , 0x04 , 
+    0x01 , 0xB0 , 0xC6 , 0x96 
+};
+
+static uint8_t cal_packet_pga_2[] = 
+{ 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x63 , 0x24 , 0x62 , 0x5A , 0x01 , 0x04 , 
+    0x02 , 0xB0 , 0xC6 , 0x96 
+};
+
+static uint8_t cal_packet_pga_4[] = 
+{ 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x63 , 0x24 , 0x62 , 0x5A , 0x01 , 0x04 , 
+    0x03 , 0xB0 , 0xC6 , 0x96 
 };
 
 static uint8_t raw_adc_packet[] = 
@@ -308,12 +327,55 @@ void test_srv__deserialise_GetStringFromCalibrationBinPacket(void)
         parse_result = srv__deserialise_parse( cal_packet[ idx ] );
     }
     TEST_ASSERT_TRUE( parse_result );
-    uint8_t str_len = 0;
-    char * test_str = srv__deserialise_get_log_packet_line( & str_len );
-    printf( "%s" , test_str );
-    TEST_ASSERT_NOT_NULL( test_str );
-    TEST_ASSERT_EQUAL_UINT8( str_len , ( uint8_t ) strlen( test_str ) );
-    TEST_ASSERT_EQUAL_STRING( "20180119_17:01:23:Calibration finish: Single LED, 15.0 mA, 50864\r\n" , test_str );
+    test_cal_payload_ascii( "20180119_17:01:23:Calibration finish: Single LED, 15.0 mA, 50864\r\n" );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__deserialise_GetStringFromCalibrationBinPacketWithPga1(void)
+{
+    bool parse_result = false;
+    for( int idx = 0 ; idx < sizeof( cal_packet_pga_1 ) ; idx ++ )
+    {
+        parse_result = srv__deserialise_parse( cal_packet_pga_1[ idx ] );
+    }
+    TEST_ASSERT_TRUE( parse_result );
+    test_cal_payload_ascii( "20180119_17:01:23:Calibration finish: PGA1, 15.0 mA, 50864\r\n" );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__deserialise_GetStringFromCalibrationBinPacketWithPga2(void)
+{
+    bool parse_result = false;
+    for( int idx = 0 ; idx < sizeof( cal_packet_pga_2 ) ; idx ++ )
+    {
+        parse_result = srv__deserialise_parse( cal_packet_pga_2[ idx ] );
+    }
+    TEST_ASSERT_TRUE( parse_result );
+    test_cal_payload_ascii( "20180119_17:01:23:Calibration finish: PGA2, 15.0 mA, 50864\r\n" );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__deserialise_GetStringFromCalibrationBinPacketWithPga4(void)
+{
+    bool parse_result = false;
+    for( int idx = 0 ; idx < sizeof( cal_packet_pga_4 ) ; idx ++ )
+    {
+        parse_result = srv__deserialise_parse( cal_packet_pga_4[ idx ] );
+    }
+    TEST_ASSERT_TRUE( parse_result );
+    test_cal_payload_ascii( "20180119_17:01:23:Calibration finish: PGA4, 15.0 mA, 50864\r\n" );
 }
 
 /*----------------------------------------------------------------------------
@@ -359,6 +421,21 @@ static void test_calibraion_payload( data__log_packet_t * log_packet )
 static void test_temperature_payload( data__log_packet_t * log_packet )
 {
     TEST_ASSERT_EQUAL_INT8( 23 , log_packet->temperature_payload.value );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+static void test_cal_payload_ascii( char * expected )
+{
+    uint8_t str_len = 0;
+    char * test_str = srv__deserialise_get_log_packet_line( & str_len );
+    printf( "%s" , test_str );
+    TEST_ASSERT_NOT_NULL( test_str );
+    TEST_ASSERT_EQUAL_UINT8( str_len , ( uint8_t ) strlen( test_str ) );
+    TEST_ASSERT_EQUAL_STRING( expected , test_str );
 }
 /*----------------------------------------------------------------------------
   End of file

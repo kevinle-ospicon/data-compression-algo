@@ -405,11 +405,17 @@ static int srv__deserialise_get_payload_value_ascii( char * buf , data__log_pack
                 return_val += sprintf( buf , " %s," , LOG_DATA_CAL_SINGLE_LED );
             }
             else if( log_packet->cal_payload.pga_level == data__log_cal_pga_lvl_1 )
-            {}
+            {
+                return_val += sprintf( buf , " %s," , LOG_DATA_CAL_PGA_1 );
+            }
             else if( log_packet->cal_payload.pga_level == data__log_cal_pga_lvl_2 )
-            {}
+            {
+                return_val += sprintf( buf , " %s," , LOG_DATA_CAL_PGA_2 );
+            }
             else if( log_packet->cal_payload.pga_level == data__log_cal_pga_lvl_4 )
-            {}
+            {
+                return_val += sprintf( buf , " %s," , LOG_DATA_CAL_PGA_4 );
+            }
             return_val += sprintf( buf + return_val , " %.1f mA," , ( float ) log_packet->cal_payload.current / 10.0 );
             return_val += sprintf( buf + return_val , " %u\r\n" , log_packet->cal_payload.raw_value );
             break;
