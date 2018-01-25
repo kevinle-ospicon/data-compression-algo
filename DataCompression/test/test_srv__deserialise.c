@@ -146,6 +146,20 @@ static const test_payload_cb_t test_payload_cb [ data__log_type_number_of ] =
     test_calibraion_payload,
     test_temperature_payload
 };
+
+static char * raw_adc_packet_ascii_sample[] = 
+{
+    "20180119_17:01:03:Raw:40885\r\n",
+    "20180119_17:01:03:Raw:40487\r\n",
+    "20180119_17:01:03:Raw:40431\r\n",
+    "20180119_17:01:03:Raw:40216\r\n",
+    "20180119_17:01:03:Raw:40027\r\n",
+    "20180119_17:01:03:Raw:39880\r\n",
+    "20180119_17:01:03:Raw:39800\r\n",
+    "20180119_17:01:03:Raw:39823\r\n",
+    "20180119_17:01:03:Raw:40098\r\n",
+    "20180119_17:01:03:Raw:40350\r\n"
+};
 /*----------------------------------------------------------------------------
   public functions
 ----------------------------------------------------------------------------*/
@@ -417,6 +431,28 @@ void test_srv__deserialise_GetStringFromRawAdcBinPacketWithSingleSampleToAscii(v
     }
     TEST_ASSERT_TRUE( parse_result );
     test_cal_payload_ascii( RAW_ADC_SINGLE_ASCII_SAMPLE );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__deserialise_GetStringFromRawAdcBinPacketWithMultipleSamplesToAscii(void)
+{
+    bool parse_result = false;
+    for( int idx = 0 ; idx < sizeof( raw_adc_packet ) ; idx ++ )
+    {
+        parse_result = srv__deserialise_parse( raw_adc_packet[ idx ] );
+    }
+
+    TEST_ASSERT_TRUE( parse_result );
+
+    int total_lines = srv__deserialise_get_pending_raw_adc_lines();
+    for( int count = 0 ; count < total_lines ; count ++ )
+    {
+        test_cal_payload_ascii( raw_adc_packet_ascii_sample[ count ] );
+    }
 }
 
 /*----------------------------------------------------------------------------

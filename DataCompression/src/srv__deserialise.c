@@ -88,7 +88,7 @@ static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context
 static bool srv__deserialise_parse_temperature_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static int srv__deserialise_get_timestamp_ascii( srv__deserialise_context_t * ctx );
 static int srv__deserialise_get_log_type_ascii( char * buf , enum data__log_type_e log_type );
-static int srv__deserialise_get_payload_value_ascii( char * buf , data__log_packet_t * log_packet , enum data__log_type_e log_type );
+static int srv__deserialise_get_payload_value_ascii( int buf_idx , srv__deserialise_context_t * ctx );
 static int srv__deserialise_get_cal_payload_value_ascii( char * buf , data__log_packet_t * log_packet );
 
 /*----------------------------------------------------------------------------
@@ -179,10 +179,28 @@ char * srv__deserialise_get_log_packet_line( uint8_t * size )
     memset( srv__deserialise_context.packet_string , 0 , SRV_DESERIALISE_MAX_STRING_LEN );
     size_so_far = srv__deserialise_get_timestamp_ascii( & srv__deserialise_context );
     size_so_far += srv__deserialise_get_log_type_ascii( & buf[ size_so_far ] , log_type );
-    size_so_far += srv__deserialise_get_payload_value_ascii( & buf[ size_so_far ] , & srv__deserialise_context.log_packet , log_type );
+    size_so_far += srv__deserialise_get_payload_value_ascii( size_so_far , & srv__deserialise_context );
     
     * size = size_so_far;
     return srv__deserialise_context.packet_string;
+}
+
+/*============================================================================
+@brief  Get the number of pending ADC lines. Otherwise return zero because
+        other types donot have array in their payloads.
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+int srv__deserialise_get_pending_raw_adc_lines( void )
+{
+    if( srv__deserialise_context.log_packet.header.log_type == data__log_type_raw_adc )
+    {
+        return srv__deserialise_context.log_packet.raw_adc_payload.sample_count;
+    }
+    else
+    {
+        return 0;
+    }
 }
 /*----------------------------------------------------------------------------
   private functions
@@ -293,6 +311,7 @@ static bool srv__deserialise_parse_raw_adc_payload( srv__deserialise_context_t *
                 if( ++ ctx->raw_adc_payload_idx >= ctx->log_packet.raw_adc_payload.sample_count )
                 {
                     status = true;
+                    ctx->raw_adc_payload_idx = 0;
                     ctx->state = srv__deserialise_state_CR;
                 }
             }
@@ -394,19 +413,23 @@ static int srv__deserialise_get_log_type_ascii( char * buf , enum data__log_type
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-static int srv__deserialise_get_payload_value_ascii( char * buf , data__log_packet_t * log_packet , enum data__log_type_e log_type )
+static int srv__deserialise_get_payload_value_ascii( int buf_idx , srv__deserialise_context_t * ctx )
 {
     int return_val = 0;
-    switch( log_type )
+    char * buf_ptr = & ctx->packet_string[ buf_idx ];
+    int idx;
+    switch( ctx->log_packet.header.log_type )
     {
         case data__log_type_raw_adc:
-            return_val = sprintf( buf , "%u\r\n" , log_packet->raw_adc_payload.value[ 0 ] );
+            idx = ctx->raw_adc_payload_idx;
+            return_val = sprintf( buf_ptr , "%u\r\n" , ctx->log_packet.raw_adc_payload.value[ idx ] );
+            ctx->raw_adc_payload_idx ++;
             break;
         case data__log_type_cal:
-            return_val = srv__deserialise_get_cal_payload_value_ascii( buf , log_packet );
+            return_val = srv__deserialise_get_cal_payload_value_ascii( buf_ptr , & ctx->log_packet );
             break;
         case data__log_type_temperature:
-            return_val = sprintf( buf , "%d\r\n" , log_packet->temperature_payload.value );
+            return_val = sprintf( buf_ptr , "%d\r\n" , ctx->log_packet.temperature_payload.value );
             break;
         default:
             break;

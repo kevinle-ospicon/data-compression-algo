@@ -43,6 +43,7 @@ void srv__deserialise_init( void );
 bool srv__deserialise_parse( uint8_t byte_value );
 data__log_packet_t srv__deserialise_get_log_packet( void );
 char * srv__deserialise_get_log_packet_line( uint8_t * size );
+int srv__deserialise_get_pending_raw_adc_lines( void );
 
 /*----------------------------------------------------------------------------
   compile time checks
