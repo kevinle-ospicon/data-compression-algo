@@ -374,6 +374,7 @@ static int srv__deserialise_get_log_type_ascii( char * buf , enum data__log_type
     switch( log_type )
     {
         case data__log_type_raw_adc:
+            return_val = sprintf( buf , "%s:" , LOG_DATA_TYPE_RAW_ADC );
             break;
         case data__log_type_cal:
             return_val = sprintf( buf , "%s:" , LOG_DATA_TYPE_CAL );
@@ -399,6 +400,7 @@ static int srv__deserialise_get_payload_value_ascii( char * buf , data__log_pack
     switch( log_type )
     {
         case data__log_type_raw_adc:
+            return_val = sprintf( buf , "%u\r\n" , log_packet->raw_adc_payload.value[ 0 ] );
             break;
         case data__log_type_cal:
             return_val = srv__deserialise_get_cal_payload_value_ascii( buf , log_packet );

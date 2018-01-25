@@ -32,6 +32,23 @@ typedef void ( * test_payload_cb_t ) ( data__log_packet_t * log_packet );
 /*----------------------------------------------------------------------------
   macros
 ----------------------------------------------------------------------------*/
+#define RAW_ADC_SINGLE_ASCII_SAMPLE "20180119_17:01:03:Raw:40885\r\n"
+#define RAW_ADC_ASCII_SAMPLE "20180119_17:01:03:Raw:40885\r\n \
+20180119_17:01:03:Raw:40487\r\n \
+20180119_17:01:03:Raw:40431\r\n \
+20180119_17:01:03:Raw:40216\r\n \
+20180119_17:01:03:Raw:40027\r\n \
+20180119_17:01:03:Raw:39880\r\n \
+20180119_17:01:03:Raw:39800\r\n \
+20180119_17:01:03:Raw:39823\r\n \
+20180119_17:01:03:Raw:40098\r\n \
+20180119_17:01:03:Raw:40350\r\n"
+#define TEMPERATURE_ASCII_SAMPLE "20180119_17:01:01:Temp:23\r\n"
+#define CAL_SINGLE_LED_ASCII_SAMPLE "20180119_17:01:23:Calibration finish: Single LED, 15.0 mA, 50864\r\n"
+#define CAL_PGA_1_ASCII_SAMPLE "20180119_17:01:23:Calibration finish: PGA1, 15.0 mA, 50864\r\n"
+#define CAL_PGA_2_ASCII_SAMPLE "20180119_17:01:23:Calibration finish: PGA2, 15.0 mA, 50864\r\n"
+#define CAL_PGA_4_ASCII_SAMPLE "20180119_17:01:23:Calibration finish: PGA4, 15.0 mA, 50864\r\n"
+
 
 /*----------------------------------------------------------------------------
   prototypes
@@ -96,6 +113,14 @@ static uint8_t raw_adc_packet[] =
 { 
     0x0D , 0x0A , 0x3E , 0x3E , 0x4F , 0x24 , 0x62 , 0x5A , 0x00 , 0x17 , 
     0x0A , 0xB5 , 0x9F , 0x27 , 0x9E , 0xEF , 0x9D , 0x18 , 0x9D , 0x5B , 
+    0x9C , 0xC8 , 0x9B , 0x78 , 0x9B , 0x8F , 0x9B , 0xA2 , 0x9C , 0x9E , 
+    0x9D , 0x00 , 0x00 
+};
+
+static uint8_t raw_adc_single_packet[] = 
+{ 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x4F , 0x24 , 0x62 , 0x5A , 0x00 , 0x17 , 
+    0x01 , 0xB5 , 0x9F , 0x27 , 0x9E , 0xEF , 0x9D , 0x18 , 0x9D , 0x5B , 
     0x9C , 0xC8 , 0x9B , 0x78 , 0x9B , 0x8F , 0x9B , 0xA2 , 0x9C , 0x9E , 
     0x9D , 0x00 , 0x00 
 };
@@ -311,7 +336,7 @@ void test_srv__deserialise_GetStringFromTemperatureBinPacket(void)
     printf( "%s" , test_str );
     TEST_ASSERT_NOT_NULL( test_str );
     TEST_ASSERT_EQUAL_UINT8( str_len , ( uint8_t ) strlen( test_str ) );
-    TEST_ASSERT_EQUAL_STRING( "20180119_17:01:01:Temp:23\r\n" , test_str );
+    TEST_ASSERT_EQUAL_STRING( TEMPERATURE_ASCII_SAMPLE , test_str );
 }
 
 /*============================================================================
@@ -327,7 +352,7 @@ void test_srv__deserialise_GetStringFromCalibrationBinPacket(void)
         parse_result = srv__deserialise_parse( cal_packet[ idx ] );
     }
     TEST_ASSERT_TRUE( parse_result );
-    test_cal_payload_ascii( "20180119_17:01:23:Calibration finish: Single LED, 15.0 mA, 50864\r\n" );
+    test_cal_payload_ascii( CAL_SINGLE_LED_ASCII_SAMPLE );
 }
 
 /*============================================================================
@@ -343,7 +368,7 @@ void test_srv__deserialise_GetStringFromCalibrationBinPacketWithPga1(void)
         parse_result = srv__deserialise_parse( cal_packet_pga_1[ idx ] );
     }
     TEST_ASSERT_TRUE( parse_result );
-    test_cal_payload_ascii( "20180119_17:01:23:Calibration finish: PGA1, 15.0 mA, 50864\r\n" );
+    test_cal_payload_ascii( CAL_PGA_1_ASCII_SAMPLE );
 }
 
 /*============================================================================
@@ -359,7 +384,7 @@ void test_srv__deserialise_GetStringFromCalibrationBinPacketWithPga2(void)
         parse_result = srv__deserialise_parse( cal_packet_pga_2[ idx ] );
     }
     TEST_ASSERT_TRUE( parse_result );
-    test_cal_payload_ascii( "20180119_17:01:23:Calibration finish: PGA2, 15.0 mA, 50864\r\n" );
+    test_cal_payload_ascii( CAL_PGA_2_ASCII_SAMPLE );
 }
 
 /*============================================================================
@@ -375,7 +400,23 @@ void test_srv__deserialise_GetStringFromCalibrationBinPacketWithPga4(void)
         parse_result = srv__deserialise_parse( cal_packet_pga_4[ idx ] );
     }
     TEST_ASSERT_TRUE( parse_result );
-    test_cal_payload_ascii( "20180119_17:01:23:Calibration finish: PGA4, 15.0 mA, 50864\r\n" );
+    test_cal_payload_ascii( CAL_PGA_4_ASCII_SAMPLE );
+}
+
+/*============================================================================
+@brief
+------------------------------------------------------------------------------
+@note
+============================================================================*/
+void test_srv__deserialise_GetStringFromRawAdcBinPacketWithSingleSampleToAscii(void)
+{
+    bool parse_result = false;
+    for( int idx = 0 ; idx < sizeof( raw_adc_single_packet ) ; idx ++ )
+    {
+        parse_result = srv__deserialise_parse( raw_adc_single_packet[ idx ] );
+    }
+    TEST_ASSERT_TRUE( parse_result );
+    test_cal_payload_ascii( RAW_ADC_SINGLE_ASCII_SAMPLE );
 }
 
 /*----------------------------------------------------------------------------
