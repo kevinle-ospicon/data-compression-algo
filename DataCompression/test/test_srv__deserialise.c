@@ -313,7 +313,7 @@ void test_srv__deserialise_GetStringFromCalibrationBinPacket(void)
     printf( "%s" , test_str );
     TEST_ASSERT_NOT_NULL( test_str );
     TEST_ASSERT_EQUAL_UINT8( str_len , ( uint8_t ) strlen( test_str ) );
-    TEST_ASSERT_EQUAL_STRING( "20180119_17:01:23:Calibration finish:\r\n" , test_str );
+    TEST_ASSERT_EQUAL_STRING( "20180119_17:01:23:Calibration finish: Single LED, 15.0 mA, 50864\r\n" , test_str );
 }
 
 /*----------------------------------------------------------------------------

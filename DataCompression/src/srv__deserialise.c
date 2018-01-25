@@ -180,9 +180,6 @@ char * srv__deserialise_get_log_packet_line( uint8_t * size )
     size_so_far += srv__deserialise_get_log_type_ascii( & buf[ size_so_far ] , log_type );
     size_so_far += srv__deserialise_get_payload_value_ascii( & buf[ size_so_far ] , & srv__deserialise_context.log_packet , log_type );
     
-    // int value = srv__deserialise_context.log_packet.temperature_payload.value;
-    // size_so_far += sprintf( & srv__deserialise_context.packet_string[ size_so_far ] , "%d\r\n" , value );
-    
     * size = size_so_far;
     return srv__deserialise_context.packet_string;
 }
@@ -403,6 +400,18 @@ static int srv__deserialise_get_payload_value_ascii( char * buf , data__log_pack
         case data__log_type_raw_adc:
             break;
         case data__log_type_cal:
+            if( log_packet->cal_payload.pga_level == data__log_cal_pga_lvl_single_led )
+            {
+                return_val += sprintf( buf , " %s," , LOG_DATA_CAL_SINGLE_LED );
+            }
+            else if( log_packet->cal_payload.pga_level == data__log_cal_pga_lvl_1 )
+            {}
+            else if( log_packet->cal_payload.pga_level == data__log_cal_pga_lvl_2 )
+            {}
+            else if( log_packet->cal_payload.pga_level == data__log_cal_pga_lvl_4 )
+            {}
+            return_val += sprintf( buf + return_val , " %.1f mA," , ( float ) log_packet->cal_payload.current / 10.0 );
+            return_val += sprintf( buf + return_val , " %u\r\n" , log_packet->cal_payload.raw_value );
             break;
         case data__log_type_temperature:
             return_val = sprintf( buf , "%d\r\n" , log_packet->temperature_payload.value );
