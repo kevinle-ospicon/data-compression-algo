@@ -97,18 +97,18 @@ static void start_deserialise_process( int byte_from_file )
 			{
 				//Write each raw ADC log value to a line.
 				//There could be multiple values.
-				//write_string_to_file( deserialised_filename , srv__deserialise_get_log_packet_line( & line_size ) );
 				line_ptr = srv__deserialise_get_log_packet_line( & line_size );
 				printf("%s" , line_ptr );
+				write_string_to_file( deserialised_filename , line_ptr );
 				deserialised_lines++;
 			}
 		}
 		else
 		{
 			// Write other log packet to a single line.
-			//write_string_to_file( deserialised_filename , srv__deserialise_get_log_packet_line( & line_size ) );
 			line_ptr = srv__deserialise_get_log_packet_line( & line_size );
 			printf("%s" , line_ptr );
+			write_string_to_file( deserialised_filename , line_ptr );
 			deserialised_lines++;
 		}
 	}
@@ -122,6 +122,6 @@ static void write_string_to_file( char * file_name , char * string )
 		printf("Could not open file %s",file_name);
 		return;
 	}
-	fputs( string , file_name );
+	fputs( string , fp );
 	fclose(fp);
 }
