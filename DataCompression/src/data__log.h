@@ -23,7 +23,7 @@
 /*----------------------------------------------------------------------------
   macros
 ----------------------------------------------------------------------------*/
-#define MAX_ADC_SAMPLE_COUNT            11
+#define MAX_ADC_SAMPLE_COUNT            10
 #define MAX_SOUND_SAMPLE_COUNT          10
 #define LOG_DATA_BEGIN_MARKER           "\r\n>>"
 #define LOG_DATA_BEGIN_MARKER_LEN       4

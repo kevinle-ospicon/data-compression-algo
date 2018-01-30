@@ -38,10 +38,13 @@ This driver provides APIs to accept log data and append to the memory
   prototypes
 ----------------------------------------------------------------------------*/
 void dev__log_handler_init_log_data( void );
-void dev__log_handler_add_raw_adc_value( uint32_t timestamp , uint16_t value );
+void dev__log_handler_add_raw_adc_value( uint16_t value );
 void dev__log_handler_commit_raw_adc_packet( void );
-void dev__log_handler_add_cal_packet( uint32_t timestamp , uint8_t pga_level , uint16_t raw_value , uint8_t current );
-void dev__log_handler_add_temperature_packet( uint32_t timestamp , int8_t value );
+void dev__log_handler_add_sound_value( uint16_t value );
+void dev__log_handler_commit_sound_packet( void );
+void dev__log_handler_add_cal_packet( uint8_t pga_level , uint16_t raw_value , uint8_t current );
+void dev__log_handler_add_temperature_packet( int8_t value );
+void dev__log_handler_add_timestamp_packet( uint32_t value );
 
 /*----------------------------------------------------------------------------
   compile time checks
