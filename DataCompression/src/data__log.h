@@ -112,7 +112,7 @@ typedef struct data__log_timestamp_payload_s
 /* End of log data payload definitions */
 
 /* Log data packet definition */
-
+#pragma anon_unions
 typedef union data__log_packet_s
 {
     struct __attribute__((packed))
