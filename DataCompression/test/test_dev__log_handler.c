@@ -24,8 +24,9 @@ void test_dev__log_handler_AddAndReadCalibrationLedPayload(void)
     uint8_t pga_level = data__log_cal_pga_lvl_2;
     uint16_t raw_value = 0x9876;
     uint8_t current = 125;
+    uint32_t timestamp = 0x12345678;
 
-    dev__log_handler_add_cal_packet( pga_level , raw_value , current );
+    dev__log_handler_add_cal_packet( pga_level , raw_value , current , timestamp );
     uint8_t data_size = 0;
     uint8_t * data_ptr = hw__log_io_read( & data_size );
 
@@ -37,6 +38,7 @@ void test_dev__log_handler_AddAndReadCalibrationLedPayload(void)
     TEST_ASSERT_EQUAL_UINT8( pga_level , packet.cal_payload.pga_level );
     TEST_ASSERT_EQUAL_UINT16( raw_value , packet.cal_payload.raw_value );
     TEST_ASSERT_EQUAL_UINT8( current , packet.cal_payload.current );
+    TEST_ASSERT_EQUAL_UINT32( timestamp , packet.cal_payload.timestamp );
 }
 
 void test_dev__log_handler_AddAndReadTemperaturePayload(void)

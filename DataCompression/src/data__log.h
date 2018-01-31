@@ -91,6 +91,7 @@ typedef struct data__log_cal_payload_s
     uint8_t pga_level;
     uint16_t raw_value;
     uint8_t current;
+    uint32_t timestamp;
 } __attribute__((packed)) data__log_cal_payload_t;
 
 typedef struct data__log_temperature_payload_s

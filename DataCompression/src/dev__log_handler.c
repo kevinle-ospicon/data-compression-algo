@@ -115,12 +115,13 @@ void dev__log_handler_commit_sound_packet( void )
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-void dev__log_handler_add_cal_packet( uint8_t pga_level , uint16_t raw_value , uint8_t current )
+void dev__log_handler_add_cal_packet( uint8_t pga_level , uint16_t raw_value , uint8_t current , uint32_t timestamp )
 {
     data__log_cal_payload_t payload;
     payload.pga_level = pga_level;
     payload.raw_value = raw_value;
     payload.current = current;
+    payload.timestamp = timestamp;
     dev__log_handler_write_packet( data__log_type_cal , ( uint8_t *) & payload );
 }
 

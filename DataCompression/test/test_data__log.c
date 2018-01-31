@@ -71,6 +71,7 @@ void test_data__log_CalibrationLedPacketLength(void)
     int packet_len = sizeof( uint8_t ) +           // pga_level
                       sizeof( uint16_t ) +          // raw_value
                       sizeof( uint8_t ) +            // current
+                      sizeof( uint32_t ) +            // timestamp
                       get_header_size();
     TEST_ASSERT_EQUAL_INT( packet_len , data__log_get_packet_len( data__log_type_cal ) );
 }
