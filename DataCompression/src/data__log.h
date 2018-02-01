@@ -46,8 +46,6 @@ enum data__log_type_e
 {
     data__log_type_raw_adc = 0x00,
     data__log_type_cal,
-    data__log_type_temperature,
-    data__log_type_sound,
     data__log_type_timestamp,
     
     data__log_type_number_of
@@ -94,17 +92,6 @@ typedef struct data__log_cal_payload_s
     uint32_t timestamp;
 } __attribute__((packed)) data__log_cal_payload_t;
 
-typedef struct data__log_temperature_payload_s
-{
-    int8_t value;
-} __attribute__((packed)) data__log_temperature_payload_t;
-
-typedef struct data__log_sound_payload_s
-{
-    uint8_t sample_count;
-    uint16_t value[ MAX_SOUND_SAMPLE_COUNT ];
-} __attribute__((packed)) data__log_sound_payload_t;
-
 typedef struct data__log_timestamp_payload_s
 {
     uint32_t value;
@@ -123,8 +110,6 @@ typedef union data__log_packet_s
         {
             data__log_raw_adc_payload_t raw_adc_payload;
             data__log_cal_payload_t cal_payload;
-            data__log_temperature_payload_t temperature_payload;
-            data__log_sound_payload_t sound_payload;
             data__log_timestamp_payload_t timestamp_payload;
             uint8_t payload[ 1 ];
         };

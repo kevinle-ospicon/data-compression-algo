@@ -92,10 +92,6 @@ data__log_get_payload_len( enum data__log_type_e log_type )
             return sizeof( data__log_raw_adc_payload_t );
         case data__log_type_cal:
             return sizeof( data__log_cal_payload_t );
-        case data__log_type_temperature:
-            return sizeof( data__log_temperature_payload_t );
-        case data__log_type_sound:
-            return sizeof( data__log_sound_payload_t );
         case data__log_type_timestamp:
             return sizeof( data__log_timestamp_payload_t );
         default:
