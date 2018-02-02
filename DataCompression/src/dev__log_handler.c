@@ -13,7 +13,9 @@
   include files
 ----------------------------------------------------------------------------*/
 #include "dev__log_handler.h"
-#include "hw__log_io.h"
+#ifdef UNIT_TEST    
+  #include "hw__log_io.h"
+#endif
 #include <string.h>
 
 /*----------------------------------------------------------------------------
@@ -120,7 +122,9 @@ void dev__log_handler_add_timestamp_packet( uint32_t value )
 static void dev__log_handler_write_packet( enum data__log_type_e log_type , uint8_t * payload_ptr )
 {
     data__log_packet_t packet = data__log_prepare_packet( log_type , payload_ptr );
+#ifdef UNIT_TEST    
     hw__log_io_write( packet.img , data__log_get_packet_len( log_type ) );
+#endif
 }
 
 /*============================================================================
