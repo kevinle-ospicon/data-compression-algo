@@ -27,7 +27,6 @@ enum srv__deserialise_state
     srv__deserialise_state_LF,
     srv__deserialise_state_begin_1,
     srv__deserialise_state_begin_2,
-    srv__deserialise_state_timestamp,
     srv__deserialise_state_log_type,
     srv__deserialise_state_payload_len,
     srv__deserialise_state_payload,
@@ -53,7 +52,8 @@ enum srv__deserialise_cal_payload_state
 {
     srv__deserialise_cal_payload_state_pga_level,
     srv__deserialise_cal_payload_state_raw_value,
-    srv__deserialise_cal_payload_state_current
+    srv__deserialise_cal_payload_state_current,
+    srv__deserialise_cal_payload_state_timestamp
 };
 
 /*----------------------------------------------------------------------------
@@ -82,11 +82,10 @@ typedef bool ( * srv__deserialise_parse_payload_cb_t ) ( srv__deserialise_contex
   prototypes
 ----------------------------------------------------------------------------*/
 static void srv__deserialise_init_log_data( void );
-static void srv__deserialise_detect_begin_marker( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static void srv__deserialise_parse_header( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static bool srv__deserialise_parse_raw_adc_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
-static bool srv__deserialise_parse_temperature_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
+static bool srv__deserialise_parse_timestamp_payload( srv__deserialise_context_t * ctx , uint8_t byte_value );
 static int srv__deserialise_get_timestamp_ascii( srv__deserialise_context_t * ctx );
 static int srv__deserialise_get_log_type_ascii( char * buf , enum data__log_type_e log_type );
 static int srv__deserialise_get_payload_value_ascii( int buf_idx , srv__deserialise_context_t * ctx );
@@ -104,7 +103,7 @@ static const srv__deserialise_parse_payload_cb_t parse_payload_cb[ data__log_typ
 {
     srv__deserialise_parse_raw_adc_payload,
     srv__deserialise_parse_calibration_payload,
-    srv__deserialise_parse_temperature_payload,
+    srv__deserialise_parse_timestamp_payload,
 };
 
 /*----------------------------------------------------------------------------
@@ -130,13 +129,9 @@ void srv__deserialise_init( void )
 bool srv__deserialise_parse( uint8_t byte_value )
 {
     srv__deserialise_context.valid_packet = false;
-    if( srv__deserialise_context.state < srv__deserialise_state_timestamp )
+    if( srv__deserialise_context.state < srv__deserialise_state_payload )
     {
         //We're detecting the begin marker
-        srv__deserialise_detect_begin_marker( & srv__deserialise_context , byte_value );
-    }
-    else if( srv__deserialise_context.state < srv__deserialise_state_payload )
-    {
         //We're getting the header
         srv__deserialise_parse_header( & srv__deserialise_context , byte_value );
     }
@@ -169,12 +164,12 @@ data__log_packet_t srv__deserialise_get_log_packet( void )
 ============================================================================*/
 char * srv__deserialise_get_log_packet_line( uint8_t * size )
 {
-    int size_so_far;
+    int size_so_far = 0;
     char * buf = srv__deserialise_context.packet_string;
     enum data__log_type_e log_type = srv__deserialise_context.log_packet.header.log_type;
 
     memset( srv__deserialise_context.packet_string , 0 , SRV_DESERIALISE_MAX_STRING_LEN );
-    size_so_far = srv__deserialise_get_timestamp_ascii( & srv__deserialise_context );
+    //size_so_far = srv__deserialise_get_timestamp_ascii( & srv__deserialise_context );
     size_so_far += srv__deserialise_get_log_type_ascii( & buf[ size_so_far ] , log_type );
     size_so_far += srv__deserialise_get_payload_value_ascii( size_so_far , & srv__deserialise_context );
     
@@ -223,7 +218,7 @@ static void srv__deserialise_init_log_data( void )
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-static void srv__deserialise_detect_begin_marker( srv__deserialise_context_t * ctx , uint8_t byte_value )
+static void srv__deserialise_parse_header( srv__deserialise_context_t * ctx , uint8_t byte_value )
 {
     switch( ctx->state )
     {
@@ -257,34 +252,11 @@ static void srv__deserialise_detect_begin_marker( srv__deserialise_context_t * c
             if( byte_value == msg_begin_begin_2 )
             {
                 srv__deserialise_init_log_data();
-                ctx->state = srv__deserialise_state_timestamp;
+                ctx->state = srv__deserialise_state_log_type;
             }
             else
             {
                 ctx->state = srv__deserialise_state_CR;
-            }
-            break;
-        default:
-            ctx->state = srv__deserialise_state_CR;
-            break;
-    }
-}
-
-/*============================================================================
-@brief
-------------------------------------------------------------------------------
-@note
-============================================================================*/
-static void srv__deserialise_parse_header( srv__deserialise_context_t * ctx , uint8_t byte_value )
-{
-    switch( ctx->state )
-    {
-        case srv__deserialise_state_timestamp:
-            ctx->log_packet.header.timestamp |= utils__shift_byte_left( byte_value , ctx->dummy_count );
-            if( ( ++ ctx->dummy_count ) >= LOG_DATA_TIMESTAMP_LEN )
-            {
-                ctx->dummy_count = 0;
-                ctx->state = srv__deserialise_state_log_type;
             }
             break;
         case srv__deserialise_state_log_type:
@@ -360,8 +332,16 @@ static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context
             break;
         case srv__deserialise_cal_payload_state_current:
             ctx->log_packet.cal_payload.current = byte_value;
-            status = true;
-            ctx->state = srv__deserialise_state_CR;
+            ctx->cal_payload_state = srv__deserialise_cal_payload_state_timestamp;
+            break;
+        case srv__deserialise_cal_payload_state_timestamp:
+            ctx->log_packet.cal_payload.timestamp |= (uint16_t) ( utils__shift_byte_left( byte_value , ctx->dummy_count ) & 0xFFFF );
+            if( ( ++ ctx->dummy_count ) >= LOG_DATA_TIMESTAMP_LEN )
+            {
+                ctx->dummy_count = 0;
+                status = true;
+                ctx->state = srv__deserialise_state_CR;
+            }
             break;
         default:
             ctx->state = srv__deserialise_state_CR;
@@ -375,13 +355,10 @@ static bool srv__deserialise_parse_calibration_payload( srv__deserialise_context
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-static bool srv__deserialise_parse_temperature_payload( srv__deserialise_context_t * ctx , uint8_t byte_value )
+static bool srv__deserialise_parse_timestamp_payload( srv__deserialise_context_t * ctx , uint8_t byte_value )
 {
-    ctx->log_packet.temperature_payload.value = ( int8_t ) byte_value;
-    ctx->state = srv__deserialise_state_CR;
-    return true;
+    return false;
 }
-
 /*============================================================================
 @brief
 ------------------------------------------------------------------------------
@@ -389,7 +366,7 @@ static bool srv__deserialise_parse_temperature_payload( srv__deserialise_context
 ============================================================================*/
 static int srv__deserialise_get_timestamp_ascii( srv__deserialise_context_t * ctx )
 {
-    uint32_t timestamp = ctx->log_packet.header.timestamp;
+    uint32_t timestamp = 0;
     struct tm timeinfo = utils__convert_epoch_to_calendar_time( timestamp );
     return strftime( ctx->packet_string , SRV_DESERIALISE_MAX_STRING_LEN , SRV_DESERIALISE_TIMESTAMP_FORMAT , & timeinfo);
 }
@@ -409,9 +386,6 @@ static int srv__deserialise_get_log_type_ascii( char * buf , enum data__log_type
             break;
         case data__log_type_cal:
             return_val = sprintf( buf , "%s:" , LOG_DATA_TYPE_CAL );
-            break;
-        case data__log_type_temperature:
-            return_val = sprintf( buf , "%s:" , LOG_DATA_TYPE_TEMPERATURE );
             break;
         default:
             break;
@@ -439,9 +413,6 @@ static int srv__deserialise_get_payload_value_ascii( int buf_idx , srv__deserial
             break;
         case data__log_type_cal:
             return_val = srv__deserialise_get_cal_payload_value_ascii( buf_ptr , & ctx->log_packet );
-            break;
-        case data__log_type_temperature:
-            return_val = sprintf( buf_ptr , "%d\r\n" , ctx->log_packet.temperature_payload.value );
             break;
         default:
             break;

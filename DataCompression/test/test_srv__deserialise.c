@@ -32,22 +32,21 @@ typedef void ( * test_payload_cb_t ) ( data__log_packet_t * log_packet );
 /*----------------------------------------------------------------------------
   macros
 ----------------------------------------------------------------------------*/
-#define RAW_ADC_SINGLE_ASCII_SAMPLE "20180119_17:01:03:Raw:40885\r\n"
-#define RAW_ADC_ASCII_SAMPLE "20180119_17:01:03:Raw:40885\r\n \
-20180119_17:01:03:Raw:40487\r\n \
-20180119_17:01:03:Raw:40431\r\n \
-20180119_17:01:03:Raw:40216\r\n \
-20180119_17:01:03:Raw:40027\r\n \
-20180119_17:01:03:Raw:39880\r\n \
-20180119_17:01:03:Raw:39800\r\n \
-20180119_17:01:03:Raw:39823\r\n \
-20180119_17:01:03:Raw:40098\r\n \
-20180119_17:01:03:Raw:40350\r\n"
-#define TEMPERATURE_ASCII_SAMPLE "20180119_17:01:01:Temp:23\r\n"
-#define CAL_SINGLE_LED_ASCII_SAMPLE "20180119_17:01:23:Calibration finish: Single LED, 15.0 mA, 50864\r\n"
-#define CAL_PGA_1_ASCII_SAMPLE "20180119_17:01:23:Calibration finish: PGA1, 15.0 mA, 50864\r\n"
-#define CAL_PGA_2_ASCII_SAMPLE "20180119_17:01:23:Calibration finish: PGA2, 15.0 mA, 50864\r\n"
-#define CAL_PGA_4_ASCII_SAMPLE "20180119_17:01:23:Calibration finish: PGA4, 15.0 mA, 50864\r\n"
+#define RAW_ADC_SINGLE_ASCII_SAMPLE "Raw:40885\r\n"
+#define RAW_ADC_ASCII_SAMPLE "Raw:40885\r\n \
+Raw:40487\r\n \
+Raw:40431\r\n \
+Raw:40216\r\n \
+Raw:40027\r\n \
+Raw:39880\r\n \
+Raw:39800\r\n \
+Raw:39823\r\n \
+Raw:40098\r\n \
+Raw:40350\r\n"
+#define CAL_SINGLE_LED_ASCII_SAMPLE "Calibration finish: Single LED, 15.0 mA, 50864\r\n"
+#define CAL_PGA_1_ASCII_SAMPLE "Calibration finish: PGA1, 15.0 mA, 50864\r\n"
+#define CAL_PGA_2_ASCII_SAMPLE "Calibration finish: PGA2, 15.0 mA, 50864\r\n"
+#define CAL_PGA_4_ASCII_SAMPLE "Calibration finish: PGA4, 15.0 mA, 50864\r\n"
 
 
 /*----------------------------------------------------------------------------
@@ -55,7 +54,7 @@ typedef void ( * test_payload_cb_t ) ( data__log_packet_t * log_packet );
 ----------------------------------------------------------------------------*/
 static void test_raw_adc_payload( data__log_packet_t * log_packet );
 static void test_calibraion_payload( data__log_packet_t * log_packet );
-static void test_temperature_payload( data__log_packet_t * log_packet );
+static void test_timestamp_payload( data__log_packet_t * log_packet );
 static void test_cal_payload_ascii( char * expected );
 
 /*----------------------------------------------------------------------------
@@ -75,125 +74,105 @@ static uint8_t begin_marker_wrong_LF[] = { 0x0D , 0x00 , 0x0A , 0x3E , 0x3E };
 static uint8_t begin_marker_wrong_begin_1[] = { 0x0D , 0x0A , 0x00 , 0x3E , 0x3E };
 static uint8_t begin_marker_wrong_begin_2[] = { 0x0D , 0x0A , 0x3E , 0x00 , 0x3E };
 
-static uint8_t temp_packet[] = 
-{ 
-    0x0D , 0x0A , 0x3E , 0x3E , 0x4D , 0x24 , 0x62 , 0x5A , 0x02 , 0x01 , 0x17 
-};
-
 static uint8_t correct_header[] = 
 { 
-    0x0D , 0x0A , 0x3E , 0x3E , 0x4D , 0x24 , 0x62 , 0x5A , 0x02 , 0x01 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x01 , 0x08 , 0x00 , 0xB0 , 0xC6 , 0x96 , 0x12 , 0x34 , 0x56 , 0x78
 };
 
 static uint8_t cal_packet[] = 
 { 
-    0x0D , 0x0A , 0x3E , 0x3E , 0x63 , 0x24 , 0x62 , 0x5A , 0x01 , 0x04 , 
-    0x00 , 0xB0 , 0xC6 , 0x96 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x01 , 0x08 , 0x00 , 0xB0 , 0xC6 , 0x96 , 0x12 , 0x34 , 0x56 , 0x78
 };
 
 static uint8_t cal_packet_pga_1[] = 
 { 
-    0x0D , 0x0A , 0x3E , 0x3E , 0x63 , 0x24 , 0x62 , 0x5A , 0x01 , 0x04 , 
-    0x01 , 0xB0 , 0xC6 , 0x96 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x01 , 0x08 , 0x01 , 0xB0 , 0xC6 , 0x96 , 0x12 , 0x34 , 0x56 , 0x78
 };
 
 static uint8_t cal_packet_pga_2[] = 
 { 
-    0x0D , 0x0A , 0x3E , 0x3E , 0x63 , 0x24 , 0x62 , 0x5A , 0x01 , 0x04 , 
-    0x02 , 0xB0 , 0xC6 , 0x96 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x01 , 0x08 , 0x02 , 0xB0 , 0xC6 , 0x96 , 0x12 , 0x34 , 0x56 , 0x78
 };
 
 static uint8_t cal_packet_pga_4[] = 
 { 
-    0x0D , 0x0A , 0x3E , 0x3E , 0x63 , 0x24 , 0x62 , 0x5A , 0x01 , 0x04 , 
-    0x03 , 0xB0 , 0xC6 , 0x96 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x01 , 0x08 , 0x03 , 0xB0 , 0xC6 , 0x96 , 0x12 , 0x34 , 0x56 , 0x78
 };
 
 static uint8_t raw_adc_packet[] = 
 { 
-    0x0D , 0x0A , 0x3E , 0x3E , 0x4F , 0x24 , 0x62 , 0x5A , 0x00 , 0x17 , 
-    0x0A , 0xB5 , 0x9F , 0x27 , 0x9E , 0xEF , 0x9D , 0x18 , 0x9D , 0x5B , 
-    0x9C , 0xC8 , 0x9B , 0x78 , 0x9B , 0x8F , 0x9B , 0xA2 , 0x9C , 0x9E , 
-    0x9D , 0x00 , 0x00 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x00 , 0x15 , 
+    0x0A , 
+    0xB5 , 0x9F , 0x27 , 0x9E , 0xEF , 0x9D , 0x18 , 0x9D , 0x5B , 0x9C , 
+    0xC8 , 0x9B , 0x78 , 0x9B , 0x8F , 0x9B , 0xA2 , 0x9C , 0x9E , 0x9D  
 };
 
 static uint8_t raw_adc_single_packet[] = 
 { 
-    0x0D , 0x0A , 0x3E , 0x3E , 0x4F , 0x24 , 0x62 , 0x5A , 0x00 , 0x17 , 
-    0x01 , 0xB5 , 0x9F , 0x27 , 0x9E , 0xEF , 0x9D , 0x18 , 0x9D , 0x5B , 
-    0x9C , 0xC8 , 0x9B , 0x78 , 0x9B , 0x8F , 0x9B , 0xA2 , 0x9C , 0x9E , 
-    0x9D , 0x00 , 0x00 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x00 , 0x15 , 
+    0x01 , 
+    0xB5 , 0x9F , 0x27 , 0x9E , 0xEF , 0x9D , 0x18 , 0x9D , 0x5B , 0x9C , 
+    0xC8 , 0x9B , 0x78 , 0x9B , 0x8F , 0x9B , 0xA2 , 0x9C , 0x9E , 0x9D 
 };
 
 static uint8_t temp_cal_raw_packets[] = 
 { 
-    // temperature packet
-    0x0D , 0x0A , 0x3E , 0x3E , 0x4D , 0x24 , 0x62 , 0x5A , 0x02 , 0x01 , 
-    0x17 , 
     // calibration packet
-    0x0D , 0x0A , 0x3E , 0x3E , 0x63 , 0x24 , 0x62 , 0x5A , 0x01 , 0x04 , 
-    0x00 , 0xB0 , 0xC6 , 0x96 ,
+    0x0D , 0x0A , 0x3E , 0x3E , 0x01 , 0x08 , 
+    0x00 , 0xB0 , 0xC6 , 0x96 , 0x12 , 0x34 , 0x56 , 0x78 ,
     // raw adc packet 
-    0x0D , 0x0A , 0x3E , 0x3E , 0x4F , 0x24 , 0x62 , 0x5A , 0x00 , 0x17 , 
-    0x0A , 0xB5 , 0x9F , 0x27 , 0x9E , 0xEF , 0x9D , 0x18 , 0x9D , 0x5B , 
-    0x9C , 0xC8 , 0x9B , 0x78 , 0x9B , 0x8F , 0x9B , 0xA2 , 0x9C , 0x9E , 
-    0x9D , 0x00 , 0x00 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x00 , 0x15 , 
+    0x0A , 
+    0xB5 , 0x9F , 0x27 , 0x9E , 0xEF , 0x9D , 0x18 , 0x9D , 0x5B , 0x9C , 
+    0xC8 , 0x9B , 0x78 , 0x9B , 0x8F , 0x9B , 0xA2 , 0x9C , 0x9E , 0x9D 
 };
 
 static uint8_t mixed_packets[] = 
 { 
-    // temperature packet
-    0x0D , 0x0A , 0x3E , 0x3E , 0x4D , 0x24 , 0x62 , 0x5A , 0x02 , 0x01 , 
-    0x17 , 
     // calibration packet
-    0x0D , 0x0A , 0x3E , 0x3E , 0x63 , 0x24 , 0x62 , 0x5A , 0x01 , 0x04 , 
-    0x00 , 0xB0 , 0xC6 , 0x96 ,
+    0x0D , 0x0A , 0x3E , 0x3E , 0x01 , 0x08 , 
+    0x00 , 0xB0 , 0xC6 , 0x96 , 0x12 , 0x34 , 0x56 , 0x78 ,
     // raw adc packet 
-    0x0D , 0x0A , 0x3E , 0x3E , 0x4F , 0x24 , 0x62 , 0x5A , 0x00 , 0x17 , 
-    0x0A , 0xB5 , 0x9F , 0x27 , 0x9E , 0xEF , 0x9D , 0x18 , 0x9D , 0x5B , 
-    0x9C , 0xC8 , 0x9B , 0x78 , 0x9B , 0x8F , 0x9B , 0xA2 , 0x9C , 0x9E , 
-    0x9D , 0x00 , 0x00 ,
-    // temperature packet
-    0x0D , 0x0A , 0x3E , 0x3E , 0x4D , 0x24 , 0x62 , 0x5A , 0x02 , 0x01 , 
-    0x17 , 
+    0x0D , 0x0A , 0x3E , 0x3E , 0x00 , 0x15 , 
+    0x0A , 
+    0xB5 , 0x9F , 0x27 , 0x9E , 0xEF , 0x9D , 0x18 , 0x9D , 0x5B , 0x9C , 
+    0xC8 , 0x9B , 0x78 , 0x9B , 0x8F , 0x9B , 0xA2 , 0x9C , 0x9E , 0x9D
 };
 
 static const test_payload_cb_t test_payload_cb [ data__log_type_number_of ] = 
 {
     test_raw_adc_payload,
     test_calibraion_payload,
-    test_temperature_payload
+    test_timestamp_payload
 };
 
 static char * raw_adc_packet_ascii_sample[] = 
 {
-    "20180119_17:01:03:Raw:40885\r\n",
-    "20180119_17:01:03:Raw:40487\r\n",
-    "20180119_17:01:03:Raw:40431\r\n",
-    "20180119_17:01:03:Raw:40216\r\n",
-    "20180119_17:01:03:Raw:40027\r\n",
-    "20180119_17:01:03:Raw:39880\r\n",
-    "20180119_17:01:03:Raw:39800\r\n",
-    "20180119_17:01:03:Raw:39823\r\n",
-    "20180119_17:01:03:Raw:40098\r\n",
-    "20180119_17:01:03:Raw:40350\r\n"
+    "Raw:40885\r\n",
+    "Raw:40487\r\n",
+    "Raw:40431\r\n",
+    "Raw:40216\r\n",
+    "Raw:40027\r\n",
+    "Raw:39880\r\n",
+    "Raw:39800\r\n",
+    "Raw:39823\r\n",
+    "Raw:40098\r\n",
+    "Raw:40350\r\n"
 };
 
 static char * mixed_ascii_sample[] = 
 {
-    TEMPERATURE_ASCII_SAMPLE,
     CAL_SINGLE_LED_ASCII_SAMPLE,
-    "20180119_17:01:03:Raw:40885\r\n",
-    "20180119_17:01:03:Raw:40487\r\n",
-    "20180119_17:01:03:Raw:40431\r\n",
-    "20180119_17:01:03:Raw:40216\r\n",
-    "20180119_17:01:03:Raw:40027\r\n",
-    "20180119_17:01:03:Raw:39880\r\n",
-    "20180119_17:01:03:Raw:39800\r\n",
-    "20180119_17:01:03:Raw:39823\r\n",
-    "20180119_17:01:03:Raw:40098\r\n",
-    "20180119_17:01:03:Raw:40350\r\n",
-    TEMPERATURE_ASCII_SAMPLE
+    "Raw:40885\r\n",
+    "Raw:40487\r\n",
+    "Raw:40431\r\n",
+    "Raw:40216\r\n",
+    "Raw:40027\r\n",
+    "Raw:39880\r\n",
+    "Raw:39800\r\n",
+    "Raw:39823\r\n",
+    "Raw:40098\r\n",
+    "Raw:40350\r\n",
 };
 /*----------------------------------------------------------------------------
   public functions
@@ -273,7 +252,6 @@ void test_srv__deserialise_DetectWrongBeginMarkerWithEmptyBegin2(void)
     {
         parse_result = srv__deserialise_parse( begin_marker_wrong_begin_2[ idx ] );
     }
-
     TEST_ASSERT_FALSE( parse_result );
 }
 
@@ -289,28 +267,13 @@ void test_srv__deserialise_DetectCorrectHeader(void)
     {
         parse_result = srv__deserialise_parse( correct_header[ idx ] );
     }
-    data__log_packet_t log_packet = srv__deserialise_get_log_packet();
-    TEST_ASSERT_EQUAL_UINT32( 0x5A62244D , log_packet.header.timestamp );
-    TEST_ASSERT_EQUAL_UINT8( ( uint8_t ) data__log_type_temperature , log_packet.header.log_type );
-    TEST_ASSERT_EQUAL_UINT8( sizeof( data__log_temperature_payload_t ) , log_packet.header.payload_len );
-}
-
-/*============================================================================
-@brief
-------------------------------------------------------------------------------
-@note
-============================================================================*/
-void test_srv__deserialise_GetTemperaturePacket(void)
-{
-    bool parse_result = false;
-    for( int idx = 0 ; idx < sizeof( temp_packet ) ; idx ++ )
-    {
-        parse_result = srv__deserialise_parse( temp_packet[ idx ] );
-    }
-
-    data__log_packet_t log_packet = srv__deserialise_get_log_packet();
     
-    test_payload_cb[ data__log_type_temperature ]( & log_packet );
+    TEST_ASSERT_TRUE( parse_result );
+
+    data__log_packet_t log_packet = srv__deserialise_get_log_packet();
+
+    TEST_ASSERT_EQUAL_UINT8( ( uint8_t ) data__log_type_cal , log_packet.header.log_type );
+    TEST_ASSERT_EQUAL_UINT8( sizeof( data__log_cal_payload_t ) , log_packet.header.payload_len );
 }
 
 /*============================================================================
@@ -326,6 +289,8 @@ void test_srv__deserialise_GetCalibrationPacket(void)
         parse_result = srv__deserialise_parse( cal_packet[ idx ] );
     }
 
+    TEST_ASSERT_TRUE( parse_result );
+    
     data__log_packet_t log_packet = srv__deserialise_get_log_packet();
 
     test_payload_cb[ data__log_type_cal ]( & log_packet );
@@ -343,6 +308,8 @@ void test_srv__deserialise_GetRawAdcPacket(void)
     {
         parse_result = srv__deserialise_parse( raw_adc_packet[ idx ] );
     }
+
+    TEST_ASSERT_TRUE( parse_result );
 
     data__log_packet_t log_packet = srv__deserialise_get_log_packet();
 
@@ -365,27 +332,6 @@ void test_srv__deserialise_GetMixedackets(void)
             test_payload_cb[ log_packet.header.log_type ]( & log_packet );
         }
     }
-}
-
-/*============================================================================
-@brief
-------------------------------------------------------------------------------
-@note
-============================================================================*/
-void test_srv__deserialise_GetStringFromTemperatureBinPacket(void)
-{
-    bool parse_result = false;
-    for( int idx = 0 ; idx < sizeof( temp_packet ) ; idx ++ )
-    {
-        parse_result = srv__deserialise_parse( temp_packet[ idx ] );
-    }
-    TEST_ASSERT_TRUE( parse_result );
-    uint8_t str_len = 0;
-    char * test_str = srv__deserialise_get_log_packet_line( & str_len );
-    printf( "%s" , test_str );
-    TEST_ASSERT_NOT_NULL( test_str );
-    TEST_ASSERT_EQUAL_UINT8( str_len , ( uint8_t ) strlen( test_str ) );
-    TEST_ASSERT_EQUAL_STRING( TEMPERATURE_ASCII_SAMPLE , test_str );
 }
 
 /*============================================================================
@@ -535,12 +481,11 @@ void test_srv__deserialise_GetStringFromMixedPacketsWithToAscii(void)
 ============================================================================*/
 static void test_raw_adc_payload( data__log_packet_t * log_packet )
 {
-    TEST_ASSERT_EQUAL_UINT32( 0x5A62244F , log_packet->header.timestamp );
     TEST_ASSERT_EQUAL_UINT8( ( uint8_t ) data__log_type_raw_adc , log_packet->header.log_type );
     TEST_ASSERT_EQUAL_UINT8( sizeof( data__log_raw_adc_payload_t ) , log_packet->header.payload_len );
 
-    TEST_ASSERT_EQUAL_UINT8( 0x0A , log_packet->raw_adc_payload.sample_count );
-    TEST_ASSERT_EQUAL_MEMORY( & raw_adc_packet[ 11 ] , log_packet->raw_adc_payload.value , 0x17 );
+    TEST_ASSERT_EQUAL_UINT8( MAX_ADC_SAMPLE_COUNT , log_packet->raw_adc_payload.sample_count );
+    TEST_ASSERT_EQUAL_MEMORY( & raw_adc_packet[ sizeof( data__log_header_t ) + 1 ] , log_packet->raw_adc_payload.value , sizeof( data__log_raw_adc_payload_t ) - 1 );
 }
 
 /*============================================================================
@@ -550,7 +495,6 @@ static void test_raw_adc_payload( data__log_packet_t * log_packet )
 ============================================================================*/
 static void test_calibraion_payload( data__log_packet_t * log_packet )
 {
-    TEST_ASSERT_EQUAL_UINT32( 0x5A622463 , log_packet->header.timestamp );
     TEST_ASSERT_EQUAL_UINT8( ( uint8_t ) data__log_type_cal , log_packet->header.log_type );
     TEST_ASSERT_EQUAL_UINT8( sizeof( data__log_cal_payload_t ) , log_packet->header.payload_len );
 
@@ -564,11 +508,8 @@ static void test_calibraion_payload( data__log_packet_t * log_packet )
 ------------------------------------------------------------------------------
 @note
 ============================================================================*/
-static void test_temperature_payload( data__log_packet_t * log_packet )
-{
-    TEST_ASSERT_EQUAL_INT8( 23 , log_packet->temperature_payload.value );
-}
-
+static void test_timestamp_payload( data__log_packet_t * log_packet )
+{}
 /*============================================================================
 @brief
 ------------------------------------------------------------------------------
