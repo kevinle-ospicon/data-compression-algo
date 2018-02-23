@@ -8,6 +8,7 @@
  ============================================================================
  */
 
+#include "dev__log_handler.h"
 #include "srv__serialise.h"
 #include "srv__deserialise.h"
 #include <stdio.h>
@@ -17,9 +18,10 @@
 #include <stdint.h>
 
 #define MAXCHAR 128
+#define NUMBER_OF_RAW_PACKET	(141 )
 
-static char * deserialised_filename = "deserialised.txt";
-static char * bin_filename = "test.bin";
+static char * deserialised_filename = "C:/Users/Ospicon_Vietnam_1/Documents/GIT/pi_data_logger/docs/research/mat-uart-log_20180222_1755_processed.txt";
+static char * bin_filename = "C:/Users/Ospicon_Vietnam_1/Documents/GIT/pi_data_logger/docs/research/mat-uart-log_20180222_1755.txt";
 static int deserialised_lines = 0;
 
 static void read_text_file_and_save_bin_file( void );
@@ -31,6 +33,23 @@ int main(void) {
 
 	//read_text_file_and_save_bin_file();
 	read_bin_file_and_save_text_file();
+//	int count = 0;
+//	int sample_count = 0;
+//	uint16_t adc_val = 30000;
+//	int total_packet = 0;
+//	srand((unsigned)time(NULL));
+//	int r;
+//	for ( count = 0 ; count < NUMBER_OF_RAW_PACKET ; count ++ )
+//	{
+//		for( sample_count = 0 ; sample_count < 10 ; sample_count++ )
+//		{
+//			r = rand();
+//			dev__log_handler_add_raw_adc_value( adc_val + (r % ( adc_val / 10 ) ) );
+//		}
+//		total_packet++;
+//	}
+//	dev__log_handler_commit_raw_adc_packet();
+//	printf( "samples: %d\r\n" , total_packet );
 
 	return EXIT_SUCCESS;
 }
@@ -53,9 +72,9 @@ static void read_text_file_and_save_bin_file( void )
 	{
 		printf( "line number %d: %s", line_number ++ , str );
 		str_size = strlen( str );
-		srv__serialise_to_bin( str , str_size );
+		//srv__serialise_to_bin( str , str_size );
 	}
-	srv__serialise_commit_all();
+	//srv__serialise_commit_all();
 	fclose(fp);
 }
 
@@ -63,6 +82,7 @@ static void read_bin_file_and_save_text_file( void )
 {
 	FILE *fp;
 	int c;
+	int count = 0;
 
 	fp = fopen( bin_filename , "rb" );
 	if (fp == NULL){
@@ -73,9 +93,11 @@ static void read_bin_file_and_save_text_file( void )
 	// note: int, not char, required to handle EOF
 	while ( ( c = fgetc( fp ) ) != EOF )
 	{
+		count++;
 		start_deserialise_process( c );
 	}
 	printf("total deserialized lines: %d\r\n" , deserialised_lines );
+	printf("total bytes: %d\r" , count);
 	fclose( fp );
 }
 
