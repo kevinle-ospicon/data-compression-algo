@@ -99,7 +99,7 @@ uint8_t * hw__log_io_read( uint8_t * size )
 static void hw__log_io_append_to_file( uint8_t * data_ptr , uint8_t size )
 {
     FILE *fp;
-    fp=fopen("test.bin", "ab");
+    fp=fopen("test_4kB.bin", "ab");
     fwrite( data_ptr , sizeof( uint8_t ), size, fp);
     fclose (fp);
 }

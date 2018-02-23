@@ -18,7 +18,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.cygwin.exe.debug.1925688640." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.cygwin.exe.debug.685467008" name="Cygwin GCC" superClass="cdt.managedbuild.toolchain.gnu.cygwin.exe.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.cygwin.exe.debug.36410170" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.cygwin.exe.debug"/>
-							<builder buildPath="${workspace_loc:/DataCompression}/Debug" id="cdt.managedbuild.target.gnu.builder.cygwin.exe.debug.1365140837" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.cygwin.exe.debug"/>
+							<builder buildPath="${ProjDirPath}/Debug" id="cdt.managedbuild.target.gnu.builder.cygwin.exe.debug.1365140837" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.cygwin.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.cygwin.exe.debug.355658782" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.cygwin.exe.debug">
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.693751959" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -42,7 +42,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="srv__serialise.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -89,7 +89,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="srv__serialise.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -109,4 +109,12 @@
 		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/DataCompression"/>
+		</configuration>
+		<configuration configurationName="Release">
+			<resource resourceType="PROJECT" workspacePath="/DataCompression"/>
+		</configuration>
+	</storageModule>
 </cproject>
